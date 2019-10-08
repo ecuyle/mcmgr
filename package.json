@@ -1,12 +1,12 @@
 {
   "name": "mcmgr",
   "version": "1.0.0",
-  "description": "",
-  "main": "utils.js",
+  "description": "mcmgr: Minecraft Manager",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Eric Cuyle",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.0"
