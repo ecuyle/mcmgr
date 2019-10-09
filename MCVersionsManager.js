@@ -3,10 +3,6 @@ const axios = require('axios');
 const VERSION_MANIFEST_BASE = 'https://launchermeta.mojang.com/mc/game/version_manifest.json';
 
 class MCVersionsManager {
-    constructor() {
-        
-    }
-
     getVersionsManifest() {
         return new Promise((resolve, reject) => {
             axios.get(VERSION_MANIFEST_BASE)
