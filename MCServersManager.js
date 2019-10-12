@@ -15,6 +15,7 @@ const mcvm = new MCVersionsManager();
 
 class MCServersManager {
     constructor(serverId) {
+        console.log('inside the constructor');
         this.serverId = serverId;
         this.name = '';
         this.runtime = '';
@@ -26,7 +27,7 @@ class MCServersManager {
         this.serverPropertiesTemplatePath = `${BASE_PATH}${TEMPLATES_BASE}/${SERVER_PROPERTIES_TEMPLATE_FILENAME}`;
     }
 
-    async createServer(name, runtime, config = {}, isEulaAccepted = false) {
+    async createServer(name, runtime, isEulaAccepted = false, config = {}) {
         try {
             if (this.serverId) {
                 throw new Error('FATAL INTERNAL: Server Id already exists on this manager. Cannot create new server with this manager');
@@ -52,22 +53,24 @@ class MCServersManager {
             this.mcvm = new MCVersionsManager(this.runtime);
 
             sh.mkdir(this.serverDirPath);
+            console.log('downloading server runtime');
             await this._downloadServerRuntime();
-            this._copyTemplatesIntoServerDir();
-            this._updateServerPropertiesWithConfig();
-            this._updateEulaWithUserInput();
+            console.log('now doing copying');
+            this._copyTemplatesIntoServerDirWithData();
 
             return true;
         } catch(e) {
+            console.log(e);
             return e;
         }
     }
 
-    _updateEulaWithUserInput() {
-        
+    async _createEulaWithUserInput() {
+        const eulaFile = await fs.readFile(this.eulaTemplatePath);
+        console.log(eulaFile);
     }
 
-    _updateServerPropertiesWithConfig() {
+    _createServerPropertiesWithConfig() {
        
     }
 
@@ -75,9 +78,9 @@ class MCServersManager {
         
     }
 
-    _copyTemplatesIntoServerDir() {
-        sh.cp(this.eulaTemplatePath, this.serverDirPath);
-        sh.cp(this.serverPropertiesTemplatePath, this.serverDirPath);
+    _copyTemplatesIntoServerDirWithData() {
+        this._createEulaWithUserInput();
+        this._createServerPropertiesWithConfig();
     }
 
     _downloadServerRuntime() {
@@ -93,6 +96,7 @@ class MCServersManager {
                 .then(({ data }) => {
                     const runtimeJar = fs.createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
                     data.pipe(runtimeJar);
+                    console.log('done piping');
                 })
                 .catch(err => reject(err));
         });
