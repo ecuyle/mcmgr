@@ -15,7 +15,6 @@ const mcvm = new MCVersionsManager();
 
 class MCServersManager {
     constructor(serverId) {
-        console.log('inside the constructor');
         this.serverId = serverId;
         this.name = '';
         this.runtime = '';
@@ -53,14 +52,11 @@ class MCServersManager {
             this.mcvm = new MCVersionsManager(this.runtime);
 
             sh.mkdir(this.serverDirPath);
-            console.log('downloading server runtime');
             await this._downloadServerRuntime();
-            console.log('now doing copying');
             this._copyTemplatesIntoServerDirWithData();
 
             return true;
         } catch(e) {
-            console.log(e);
             return e;
         }
     }
@@ -96,7 +92,7 @@ class MCServersManager {
                 .then(({ data }) => {
                     const runtimeJar = fs.createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
                     data.pipe(runtimeJar);
-                    console.log('done piping');
+                    resolve();
                 })
                 .catch(err => reject(err));
         });
