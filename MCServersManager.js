@@ -61,9 +61,26 @@ class MCServersManager {
         }
     }
 
-    async _createEulaWithUserInput() {
-        const eulaFile = await fs.readFile(this.eulaTemplatePath);
-        console.log(eulaFile);
+    _createEulaWithUserInput() {
+        const eulaFile = fs.readFileSync(this.eulaTemplatePath).toString().split('\n');
+        const expectedEULALineIndex = 2;
+        const expectedEULALineText = 'eula=false';
+        const newEULALineText = `eula=${this.isEulaAccepted}`;
+        const eulaDest = `${this.serverDirPath}/${EULA_FILENAME}`;
+
+        if (eulaFile[expectedEULALineIndex] === expectedEULALineText) {
+            eulaFile[expectedEULALineIndex] = newEULALineText;
+        } else {
+            eulaFile.forEach((line, i) => {
+                if (line === expectedEULALineText) {
+                    eulaFile[i] = newEULALineText;
+                }
+            });
+        }
+
+        const data = new Uint8Array(Buffer.from(eulaFile.join('\n')));
+        const result = fs.writeFileSync(eulaDest, data);
+        console.log(result);
     }
 
     _createServerPropertiesWithConfig() {
