@@ -1,13 +1,14 @@
 const fs = require('fs');
 const axios = require('axios');
 const sh = require('shelljs');
-const { mkdir } = require('./utils.js');
 const MCVersionsManager = require('./MCVersionsManager.js');
+const moment = require('moment');
+const DEFAULT_SERVER_PROPERTIES = require('./templates/template.server.properties.js');
+const { shallowCopy } = require('./utils.js');
 
 const BASE_PATH = '/home/ecuyle/Code/mcmgr';
 const TEMPLATES_BASE = '/templates';
 const EULA_TEMPLATE_FILENAME = 'template.eula.txt';
-const SERVER_PROPERTIES_TEMPLATE_FILENAME = 'template.server.properties';
 const EULA_FILENAME = 'eula.txt';
 const SERVER_PROPERTIES_FILENAME = 'server.properties';
 
@@ -23,7 +24,6 @@ class MCServersManager {
         this.serverDirPath = '';
         this._setServerPropsIfExists();
         this.eulaTemplatePath = `${BASE_PATH}${TEMPLATES_BASE}/${EULA_TEMPLATE_FILENAME}`;
-        this.serverPropertiesTemplatePath = `${BASE_PATH}${TEMPLATES_BASE}/${SERVER_PROPERTIES_TEMPLATE_FILENAME}`;
     }
 
     async createServer(name, runtime, isEulaAccepted = false, config = {}) {
@@ -79,12 +79,33 @@ class MCServersManager {
         }
 
         const data = new Uint8Array(Buffer.from(eulaFile.join('\n')));
-        const result = fs.writeFileSync(eulaDest, data);
-        console.log(result);
+        fs.writeFileSync(eulaDest, data);
+        return;
     }
 
     _createServerPropertiesWithConfig() {
-       
+        const defaultsCopy = shallowCopy(DEFAULT_SERVER_PROPERTIES);
+        this._updateDefaultServerPropertiesWithConfig(defaultsCopy);
+
+        const defaultsCopyArray = ['#Minecraft server properties', `#${moment().format('LLLL')}`];
+        Object.keys(defaultsCopy).forEach(key => {
+            defaultsCopyArray.push(`${key}=${defaultsCopy[key]}`);
+        });
+
+        const data = new Uint8Array(Buffer.from(defaultsCopyArray.join('\n')));
+        const serverDest = `${this.serverDirPath}/${SERVER_PROPERTIES_FILENAME}`;
+
+        fs.writeFileSync(serverDest, data);
+
+        return;
+    }
+
+    _updateDefaultServerPropertiesWithConfig(defaultsCopy) {
+        Object.keys(this.config).forEach(property => {
+            if (defaultsCopy[property]) {
+                defaultsCopy[property] = this.config[property];
+            }
+        });
     }
 
     _setServerPropsIfExists() {

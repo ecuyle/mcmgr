@@ -1,17 +1,19 @@
 const fs = require('fs');
 
-const mkdir = function(path) {
-    return new Promise((resolve, reject) => {
-        fs.mkdir(path, err => {
-            if (err) {
-                reject(err);
-                return;
-            }
-            resolve();
+const shallowCopy = function(obj) {
+    if (Array.isArray(obj)) {
+        return obj.map(el => el);
+    } else if (typeof obj === 'object' && !!obj) {
+        const copy = {};
+        Object.keys(obj).forEach(key => {
+            copy[key] = obj[key];
         });
-    });
+        return copy;
+    }
+
+    return obj;
 };
 
 module.exports = {
-    mkdir,
+    shallowCopy,
 };
