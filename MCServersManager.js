@@ -29,19 +29,19 @@ class MCServersManager {
     async createServer(name, runtime, isEulaAccepted = false, config = {}) {
         try {
             if (this.serverId) {
-                throw new Error('FATAL INTERNAL: Server Id already exists on this manager. Cannot create new server with this manager');
+                throw new Error('FATAL INTERNAL :: createServer :: Server Id already exists on this manager. Cannot create new server with this manager');
             }
 
             if (!name) {
-                throw new Error('FATAL EXTERNAL: User must provide server name');
+                throw new Error('FATAL EXTERNAL :: createServer :: User must provide server name');
             }
 
             if (!runtime) {
-                throw new Error('FATAL EXTERNAL: User must provide server runtime');
+                throw new Error('FATAL EXTERNAL :: createServer :: User must provide server runtime');
             }
 
             if (!isEulaAccepted) {
-                throw new Error('FATAL EXTERNAL: User must accept EULA to proceed');
+                throw new Error('FATAL EXTERNAL :: createServer :: User must accept EULA to proceed');
             }
 
             this.name = name;
@@ -57,7 +57,7 @@ class MCServersManager {
 
             return true;
         } catch(e) {
-            return e;
+            throw new Error(e);
         }
     }
 
@@ -117,38 +117,34 @@ class MCServersManager {
         this._createServerPropertiesWithConfig();
     }
 
-    _downloadServerRuntime() {
-        return new Promise((resolve, reject) => {
-            this._getServerRuntimeUrl()
-                .then(url => {
-                    return axios({
-                        method: 'GET',
-                        url: url,
-                        responseType: 'stream',
-                    });
-                })
-                .then(({ data }) => {
-                    const runtimeJar = fs.createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
-                    data.pipe(runtimeJar);
-                    resolve();
-                })
-                .catch(err => reject(err));
-        });
+    async _downloadServerRuntime() {
+        try {
+            const url = await this._getServerRuntimeUrl();
+            const { data } = await axios({
+                method: 'GET',
+                url: url,
+                responseType: 'stream',
+            });
+            const runtimeJar = fs.createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
+            data.pipe(runtimeJar);
+            return true;
+        } catch(e) {
+            throw new Error(e);
+        }
     }
 
-    _getServerRuntimeUrl() {
-        return new Promise((resolve, reject) => {
-            mcvm.getVersionManifest(this.runtime)
-                .then(({ downloads })=> {
-                    if (downloads && downloads.server) {
-                        const { url } = downloads.server;
-                        resolve(url);
-                    } else {
-                        reject(null);
-                    }
-                })
-                .catch(err => reject(err));
-        });
+    async _getServerRuntimeUrl() {
+        try {
+            const { downloads } = await mcvm.getVersionManifest(this.runtime);
+            if (downloads && downloads.server) {
+                const { url } = downloads.server;
+                return url;
+            } else {
+                throw new Error('FATAL INTERNAL :: _getServerRuntimeUrl :: Server list from mojang did not return a server runtime url');
+            }
+        } catch(e) {
+            throw new Error(e);
+        }
     }
 }
 
