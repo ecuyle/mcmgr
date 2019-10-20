@@ -1,8 +1,8 @@
 export interface MCSMInterface {
-    createServer(name: string, runtime: string, isEulaAccepted: boolean, config?: UserServerConfig): Promise<boolean>;
+    createServer(name: string, runtime: string, isEulaAccepted: boolean, config?: ServerConfig): Promise<boolean>;
 }
 
-export interface UserServerConfig {
+export interface ServerConfig {
     "spawn-protection"?: number;
     "max-tick-time"?: number;
     "query.port"?: number;
