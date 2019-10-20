@@ -1,9 +1,9 @@
 const fs = require('fs');
 const axios = require('axios');
 const sh = require('shelljs');
-const MCVersionsManager = require('./MCVersionsManager.js');
+const { MCVersionsManager } = require('./MCVersionsManager.js');
 const moment = require('moment');
-const DEFAULT_SERVER_PROPERTIES = require('./templates/template.server.properties.js');
+const DEFAULT_SERVER_PROPERTIES = require('../templates/template.server.properties.js');
 const { shallowCopy } = require('./utils.js');
 
 const BASE_PATH = '/home/ecuyle/Code/mcmgr';
