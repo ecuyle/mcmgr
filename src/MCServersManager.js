@@ -14,7 +14,7 @@ const SERVER_PROPERTIES_FILENAME = 'server.properties';
 
 const mcvm = new MCVersionsManager();
 
-class MCServersManager {
+export class MCServersManager {
     constructor(serverId) {
         this.serverId = serverId;
         this.name = '';
@@ -147,5 +147,3 @@ class MCServersManager {
         }
     }
 }
-
-module.exports = MCServersManager;
