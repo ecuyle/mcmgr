@@ -12,7 +12,6 @@ const EULA_TEMPLATE_FILENAME = 'template.eula.txt';
 const EULA_FILENAME = 'eula.txt';
 const SERVER_PROPERTIES_FILENAME = 'server.properties';
 
-console.log(MCVersionsManager);
 const mcvm = new MCVersionsManager();
 
 class MCServersManager {
