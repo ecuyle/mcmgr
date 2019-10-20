@@ -9,6 +9,7 @@
   "author": "Eric Cuyle",
   "license": "ISC",
   "dependencies": {
+    "@types/node": "^12.11.1",
     "axios": "^0.19.0",
     "moment": "^2.24.0",
     "shelljs": "^0.8.3"
