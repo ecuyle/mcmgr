@@ -2,7 +2,7 @@
   "name": "mcmgr",
   "version": "1.0.0",
   "description": "mcmgr: Minecraft Manager",
-  "main": "main.js",
+  "main": "./built/main.js",
   "scripts": {
     "test": "mocha"
   },
