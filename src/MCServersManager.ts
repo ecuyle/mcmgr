@@ -1,26 +1,24 @@
 import {
-    readFileSync,
     writeFileSync,
     createWriteStream,
     WriteStream,
 } from 'fs';
 import axios, { AxiosResponse } from 'axios';
 import { mkdir } from 'shelljs';
+import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
+import { shallowCopy } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../declarations/MCVersionsManager';
 import { MCSMInterface, ServerConfig } from '../declarations/MCServersManager';
 import { VersionDownloadDetails } from '../declarations/Common';
-import * as moment from 'moment';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
-import { shallowCopy } from './utils.js';
+import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 
 export class MCServersManager implements MCSMInterface {
-    static BASE_PATH: string = '/home/ecuyle/Code/mcmgr';
-    static TEMPLATES_BASE: string = '/templates';
-    static EULA_TEMPLATE_FILENAME: string = 'template.eula.txt';
-    static EULA_FILENAME: string = 'eula.txt';
-    static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
-    static MCVM: MCVMInterface = new MCVersionsManager(); 
+    public static BASE_PATH: string = '/home/ecuyle/Code/mcmgr';
+    public static EULA_FILENAME: string = 'eula.txt';
+    public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
+    public static MCVM: MCVMInterface = new MCVersionsManager(); 
 
     public serverId: number;
     public name: string;
@@ -28,7 +26,6 @@ export class MCServersManager implements MCSMInterface {
     public config: ServerConfig;
     public isEulaAccepted: boolean;
     public serverDirPath: string;
-    public eulaTemplatePath: string;
 
     public constructor(serverId?: number) {
         this.serverId = serverId;
@@ -38,7 +35,6 @@ export class MCServersManager implements MCSMInterface {
         this.isEulaAccepted = false;
         this.serverDirPath = '';
         this._setServerPropsIfExists();
-        this.eulaTemplatePath = `${MCServersManager.BASE_PATH}${MCServersManager.TEMPLATES_BASE}/${MCServersManager.EULA_TEMPLATE_FILENAME}`;
     }
 
     public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, config: ServerConfig = {}): Promise<boolean> {
@@ -76,21 +72,12 @@ export class MCServersManager implements MCSMInterface {
     }
 
     private _createEulaWithUserInput(): void {
-        const eulaFile: Array<string> = readFileSync(this.eulaTemplatePath).toString().split('\n');
-        const expectedEULALineIndex: number = 2;
-        const expectedEULALineText: string = 'eula=false';
-        const newEULALineText: string = `eula=${this.isEulaAccepted}`;
+        const eulaFile: Array<string> = shallowCopy(DEFAULT_EULA_ROWS);
+        const eulaAcceptanceString: string = `eula=${this.isEulaAccepted}`;
         const eulaDest: string = `${this.serverDirPath}/${MCServersManager.EULA_FILENAME}`;
 
-        if (eulaFile[expectedEULALineIndex] === expectedEULALineText) {
-            eulaFile[expectedEULALineIndex] = newEULALineText;
-        } else {
-            eulaFile.forEach((line: string, i: number) => {
-                if (line === expectedEULALineText) {
-                    eulaFile[i] = newEULALineText;
-                }
-            });
-        }
+        eulaFile[1] = `#${moment().format('LLLL')}`;
+        eulaFile[2] = eulaAcceptanceString;
 
         const data: Uint8Array = new Uint8Array(Buffer.from(eulaFile.join('\n')));
         writeFileSync(eulaDest, data);

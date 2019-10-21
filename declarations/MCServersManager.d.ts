@@ -6,7 +6,6 @@ export interface MCSMInterface {
     config: ServerConfig;
     isEulaAccepted: boolean;
     serverDirPath: string;
-    eulaTemplatePath: string;
 }
 
 export interface ServerConfig {
