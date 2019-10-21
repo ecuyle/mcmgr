@@ -67,7 +67,7 @@ export class MCServersManager implements MCSMInterface {
 
             return true;
         } catch (e) {
-            throw new Error(e);
+            return e;
         }
     }
 
