@@ -1,6 +1,6 @@
 import * as sh from 'shelljs';
 import { MCServersManager } from './MCServersManager';
-import { MCSMInterface } from '../declarations/MCServersManager';
+import { MCSMInterface } from '../types/MCServersManager';
 
 sh.rm('-rf', '/home/ecuyle/Code/mcmgr/mcsrv-test');
 

@@ -8,9 +8,9 @@ import { mkdir } from 'shelljs';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
 import { shallowCopy } from './utils.js';
-import { MCVMInterface, VersionManifest } from '../declarations/MCVersionsManager';
-import { MCSMInterface, ServerConfig } from '../declarations/MCServersManager';
-import { VersionDownloadDetails } from '../declarations/Common';
+import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
+import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
+import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 
