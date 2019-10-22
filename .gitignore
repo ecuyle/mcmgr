@@ -3,3 +3,4 @@ package-lock.json
 mcsrv-test/
 .vscode/
 dist/
+mcserver.log
