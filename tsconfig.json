@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
-        "outDir": "./built",
+        "outDir": "./dist",
         "allowJs": true,
         "target": "es5",
         "module": "CommonJS",
-        "moduleResolution": "Node"
+        "moduleResolution": "Node",
     },
     "include": [
-        "./src/**/*", "declarations/MCVersionsManager.d.ts"
+        "./src/**/*", "types/*"
     ]
 }

@@ -1,4 +1,4 @@
-import { ServerConfig } from '../declarations/MCServersManager';
+import { ServerConfig } from '../types/MCServersManager';
 
 export const DEFAULT_SERVER_PROPERTIES: ServerConfig = {
     'spawn-protection': 16,
