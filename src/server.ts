@@ -2,7 +2,6 @@ import express = require('express');
 import bodyParser = require('body-parser');
 import pino = require('pino');
 import expressPinoLogger = require('express-pino-logger');
-import chalk from 'chalk';
 
 import { createServer } from './controllers';
 
@@ -19,5 +18,5 @@ app.use(expressPinoLogger({ logger }));
 app.post('/createServer', createServer);
 
 app.listen(PORT, () => {
-    logger.info(chalk.green(`Server running on port: ${PORT}`));
+    logger.info(`Server running on port: ${PORT}`);
 });
