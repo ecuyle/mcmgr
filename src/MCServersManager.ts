@@ -15,7 +15,7 @@ import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properti
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 
 export class MCServersManager implements MCSMInterface {
-    public static BASE_PATH: string = '/home/ecuyle/Code/mcmgr';
+    public static BASE_PATH: string = __dirname;
     public static EULA_FILENAME: string = 'eula.txt';
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager(); 
@@ -64,7 +64,6 @@ export class MCServersManager implements MCSMInterface {
             mkdir(this.serverDirPath);
             await this._downloadServerRuntime();
             this._copyTemplatesIntoServerDirWithData();
-
             return this.serverId;
         } catch (e) {
             return e;
@@ -129,11 +128,13 @@ export class MCServersManager implements MCSMInterface {
     private async _downloadServerRuntime(): Promise<boolean> {
         try {
             const url: string = await this._getServerRuntimeUrl();
+
             const { data }: AxiosResponse = await axios({
                 method: 'GET',
                 url: url,
                 responseType: 'stream',
             });
+
             const runtimeJarStream: WriteStream = createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
             data.pipe(runtimeJarStream);
 
