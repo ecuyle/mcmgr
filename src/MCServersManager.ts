@@ -15,7 +15,7 @@ import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properti
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 
 export class MCServersManager implements MCSMInterface {
-    public static BASE_PATH: string = '/home/ecuyle/Code/mcmgr';
+    public static BASE_PATH: string = __dirname;
     public static EULA_FILENAME: string = 'eula.txt';
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager(); 
@@ -27,8 +27,8 @@ export class MCServersManager implements MCSMInterface {
     public isEulaAccepted: boolean;
     public serverDirPath: string;
 
-    public constructor(serverId?: number) {
-        this.serverId = serverId;
+    public constructor(serverId: number = -1) {
+        this.serverId = this._retrieveOrGenerateServerId(serverId);
         this.name = '';
         this.runtime = '';
         this.config = {};
@@ -37,7 +37,7 @@ export class MCServersManager implements MCSMInterface {
         this._setServerPropsIfExists();
     }
 
-    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, config: ServerConfig = {}): Promise<boolean> {
+    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, config: ServerConfig = {}): Promise<number> {
         try {
             if (this.serverId) {
                 throw new Error('FATAL INTERNAL :: createServer :: Server Id already exists on this manager. Cannot create new server with this manager');
@@ -64,11 +64,18 @@ export class MCServersManager implements MCSMInterface {
             mkdir(this.serverDirPath);
             await this._downloadServerRuntime();
             this._copyTemplatesIntoServerDirWithData();
-
-            return true;
+            return this.serverId;
         } catch (e) {
             return e;
         }
+    }
+
+    private _retrieveOrGenerateServerId(serverId: number): number {
+        if (serverId === -1) {
+            return 0;
+        }
+
+        return serverId;
     }
 
     private _createEulaWithUserInput(): void {
@@ -110,7 +117,7 @@ export class MCServersManager implements MCSMInterface {
     }
 
     private _setServerPropsIfExists() {
-
+        // TODO
     }
 
     private _copyTemplatesIntoServerDirWithData(): void {
@@ -121,11 +128,13 @@ export class MCServersManager implements MCSMInterface {
     private async _downloadServerRuntime(): Promise<boolean> {
         try {
             const url: string = await this._getServerRuntimeUrl();
+
             const { data }: AxiosResponse = await axios({
                 method: 'GET',
                 url: url,
                 responseType: 'stream',
             });
+
             const runtimeJarStream: WriteStream = createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
             data.pipe(runtimeJarStream);
 

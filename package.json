@@ -5,7 +5,8 @@
   "main": "./built/main.js",
   "scripts": {
     "test": "mocha",
-    "server": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log"
+    "server": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log",
+    "server-dev": "rm -rf ./dist/ && tsc && node ./dist/src/server.js"
   },
   "author": "Eric Cuyle",
   "license": "ISC",
@@ -27,6 +28,7 @@
     "@types/pino": "^5.8.12",
     "@types/shelljs": "^0.8.5",
     "chai": "^4.2.0",
+    "chalk": "^2.4.2",
     "mocha": "^6.2.1",
     "typescript": "^3.6.4"
   }
