@@ -7,7 +7,6 @@ import { Logger } from 'pino';
 const logger: Logger = pino();
 
 export async function createServer(req: Request, res: Response): Promise<void> {
-    logger.info('POST /createServer');
     const mcsm: MCSMInterface = new MCServersManager();
     const {
         name,
@@ -18,10 +17,11 @@ export async function createServer(req: Request, res: Response): Promise<void> {
 
     try {
         const serverId: number = await mcsm.createServer(name, runtime, isEulaAccepted, config);
-        logger.info('POST SUCCESS');
+        logger.info(`POST /createServer :: 201 :: ${req}`);
         res.status(201).send(JSON.stringify(serverId));
     } catch(e) {
         logger.error(e);
+        logger.error(`POST /createServer :: 400 :: ${req} :: ${e}`);
         res.status(400).send(JSON.stringify(e));
     }
 }
