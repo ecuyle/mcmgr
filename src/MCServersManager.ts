@@ -117,7 +117,7 @@ export class MCServersManager implements MCSMInterface {
     }
 
     private _setServerPropsIfExists() {
-
+        // TODO
     }
 
     private _copyTemplatesIntoServerDirWithData(): void {
