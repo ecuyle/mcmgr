@@ -1,11 +1,18 @@
 export interface MCSMInterface {
-    createServer(name: string, runtime: string, isEulaAccepted: boolean, config?: ServerConfig): Promise<boolean>;
+    createServer(name: string, runtime: string, isEulaAccepted: boolean, config?: ServerConfig): Promise<number>;
     serverId: number;
     name: string;
     runtime: string;
     config: ServerConfig;
     isEulaAccepted: boolean;
     serverDirPath: string;
+}
+
+export interface CreateServerInterface {
+    name: string;
+    runtime: string;
+    isEulaAccepted: boolean;
+    config: ServerConfig;
 }
 
 export interface ServerConfig {

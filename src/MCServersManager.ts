@@ -27,8 +27,8 @@ export class MCServersManager implements MCSMInterface {
     public isEulaAccepted: boolean;
     public serverDirPath: string;
 
-    public constructor(serverId?: number) {
-        this.serverId = serverId;
+    public constructor(serverId: number = -1) {
+        this.serverId = this._retrieveOrGenerateServerId(serverId);
         this.name = '';
         this.runtime = '';
         this.config = {};
@@ -37,7 +37,7 @@ export class MCServersManager implements MCSMInterface {
         this._setServerPropsIfExists();
     }
 
-    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, config: ServerConfig = {}): Promise<boolean> {
+    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, config: ServerConfig = {}): Promise<number> {
         try {
             if (this.serverId) {
                 throw new Error('FATAL INTERNAL :: createServer :: Server Id already exists on this manager. Cannot create new server with this manager');
@@ -65,10 +65,18 @@ export class MCServersManager implements MCSMInterface {
             await this._downloadServerRuntime();
             this._copyTemplatesIntoServerDirWithData();
 
-            return true;
+            return this.serverId;
         } catch (e) {
             return e;
         }
+    }
+
+    private _retrieveOrGenerateServerId(serverId: number): number {
+        if (serverId === -1) {
+            return 0;
+        }
+
+        return serverId;
     }
 
     private _createEulaWithUserInput(): void {
