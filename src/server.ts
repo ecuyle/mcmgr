@@ -16,11 +16,6 @@ const PORT: string = process.env.PORT || '3000';
 app.use(bodyParser.json());
 app.use(expressPinoLogger({ logger }));
 
-app.get('/createServer', (req, res) => {
-    logger.info('success');
-    res.send('yay');
-});
-
 app.post('/createServer', createServer);
 
 app.listen(PORT, () => {
