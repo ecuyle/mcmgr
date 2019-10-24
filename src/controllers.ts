@@ -19,9 +19,9 @@ export async function createServer(req: Request, res: Response): Promise<void> {
     try {
         const serverId: number = await mcsm.createServer(name, runtime, isEulaAccepted, config);
         logger.info('POST SUCCESS');
-        res.status(201).send(serverId);
+        res.status(201).send(JSON.stringify(serverId));
     } catch(e) {
         logger.error(e);
-        res.status(400).send(e)
+        res.status(400).send(JSON.stringify(e));
     }
 }
