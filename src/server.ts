@@ -15,7 +15,7 @@ const PORT: string = process.env.PORT || '3000';
 app.use(bodyParser.json());
 app.use(expressPinoLogger({ logger }));
 
-app.post('/createServer', createServer);
+app.post('/mcsrv', createServer);
 
 app.listen(PORT, () => {
     logger.info(`Server running on port: ${PORT}`);
