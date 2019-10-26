@@ -1,1 +1,11 @@
-{}
+{
+    "entity": "servers",
+    "rows": [],
+    "dict": {
+        "0": {
+            "sid": 0,
+            "uid": 0,
+            "path": "/home/ecuyle/mcsrv-test2"
+        }
+    }
+}
