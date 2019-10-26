@@ -9,6 +9,9 @@ import {
     UserSchemaObject,
     EntitiesDictionary,
     EntityFile,
+    BaseSchemaObject,
+    RelationshipsMapping,
+    EntityKVPair,
 } from '../types/MCFileManager';
 
 export class MCFileManager implements MCFMInterface {
@@ -43,6 +46,26 @@ export class MCFileManager implements MCFMInterface {
         return entity;
     }
 
+    public updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T, relationships?: RelationshipsMapping): T {
+        const entityFile: EntityFile<T> = this.getAll(target);
+        const existingId: number = newEntity.id;
+        
+        if (!entityFile.dict[existingId]) {
+            entityFile.latestId += 1;
+            newEntity.id = existingId === undefined
+            ? entityFile.latestId
+            : existingId;
+        }
+        
+        entityFile.dict[existingId] = newEntity;
+
+        Object.keys(relationships).forEach(entity => {
+            const relationshipFile:
+        });
+
+        return newEntity;
+    }
+    
     private _retrieveAndSetEntities(): void {
         const files = readdirSync(this.rootDataPath);
         const entitiesDict: EntitiesDictionary = {};
