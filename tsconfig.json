@@ -7,6 +7,6 @@
         "moduleResolution": "Node",
     },
     "include": [
-        "./src/**/*", "types/*"
+        "./src/**/*", "types/*", "test/*"
     ]
 }

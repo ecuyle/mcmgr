@@ -4,7 +4,7 @@
   "description": "mcmgr: Minecraft Manager",
   "main": "./built/main.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha ./dist/test",
     "server": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log",
     "server-dev": "rm -rf ./dist/ && tsc && node ./dist/src/server.js"
   },
@@ -21,8 +21,10 @@
   },
   "devDependencies": {
     "@types/body-parser": "^1.17.1",
+    "@types/chai": "^4.2.4",
     "@types/express": "^4.17.1",
     "@types/express-pino-logger": "^4.0.2",
+    "@types/mocha": "^5.2.7",
     "@types/moment": "^2.13.0",
     "@types/node": "^12.11.1",
     "@types/pino": "^5.8.12",

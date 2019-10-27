@@ -1,6 +1,6 @@
 import {
     readFileSync,
-    writeFile,
+    writeFileSync,
     readdirSync,
 } from 'fs';
 import {
@@ -10,8 +10,6 @@ import {
     EntitiesDictionary,
     EntityFile,
     BaseSchemaObject,
-    RelationshipsMapping,
-    EntityKVPair,
 } from '../types/MCFileManager';
 
 export class MCFileManager implements MCFMInterface {
@@ -25,7 +23,7 @@ export class MCFileManager implements MCFMInterface {
 
     public getAll<T>(entity: string): EntityFile<T> {
         try {
-            const entityPath: string = this.entities[entity];
+            const entityPath: string | void = this._getPathForEntity(entity);
 
             if (!entityPath) {
                 throw new Error(`FATAL EXTERNAL :: getAll :: entity ${entity} does not exist`);
@@ -46,24 +44,36 @@ export class MCFileManager implements MCFMInterface {
         return entity;
     }
 
-    public updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T, relationships?: RelationshipsMapping): T {
-        const entityFile: EntityFile<T> = this.getAll(target);
-        const existingId: number = newEntity.id;
-        
-        if (!entityFile.dict[existingId]) {
-            entityFile.latestId += 1;
-            newEntity.id = existingId === undefined
-            ? entityFile.latestId
-            : existingId;
+    public updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T): T {
+        try {
+            const entityFile: EntityFile<T> = this.getAll(target);
+            const path: string | void = this._getPathForEntity(target);
+
+            if (!path) {
+                throw new Error(`FATAL :: updateOrAdd :: Path for ${target} does not exist`);
+            }
+
+            if (!entityFile.dict[newEntity.id]) {
+                if (newEntity.id !== undefined) {
+                    throw new Error('FATAL :: updateOrAdd :: Server Id provided does not exist');
+                }
+
+                entityFile.latestId += 1;
+                newEntity.id = entityFile.latestId;
+            }
+            
+            entityFile.dict[newEntity.id] = newEntity;
+            const data: Uint8Array = new Uint8Array(Buffer.from(JSON.stringify(entityFile)));
+            writeFileSync(path, data);
+    
+            return newEntity;
+        } catch(e) {
+            return e;
         }
-        
-        entityFile.dict[existingId] = newEntity;
+    }
 
-        Object.keys(relationships).forEach(entity => {
-            const relationshipFile:
-        });
-
-        return newEntity;
+    private _getPathForEntity(entityName: string): string | void {
+        return this.entities[entityName];
     }
     
     private _retrieveAndSetEntities(): void {
@@ -77,8 +87,17 @@ export class MCFileManager implements MCFMInterface {
 
         this.entities = entitiesDict;
     }
-}
 
-const mcfm: MCFMInterface = new MCFileManager(`${__dirname}/../../data`);
-console.log(mcfm.getAll<ServerSchemaObject>('servers'));
-console.log(mcfm.getOneById<ServerSchemaObject>('servers', 0));
+    public resetEntityFile<T>(target: string, targetPath: string): string {
+        const entityTemplateFile: EntityFile<T> = {
+            entity: target,
+            latestId: -1,
+            dict: {},
+        };
+
+        const data: Uint8Array = new Uint8Array(Buffer.from(JSON.stringify(entityTemplateFile)));
+        writeFileSync(targetPath, data);
+
+        return targetPath;
+    }
+}

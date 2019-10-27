@@ -1,5 +1,1 @@
-{
-    "entity": "users",
-    "latestId": -1,
-    "dict": {}
-}
+{"entity":"users","latestId":0,"dict":{"0":{"username":"daffyduck","hash":"1234987a","id":0}}}

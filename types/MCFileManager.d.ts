@@ -4,22 +4,24 @@ export interface MCFMInterface {
 
     getAll<T>(entity: string): EntityFile<T>;
     getOneById<T>(entity: string, id: number): T | void;
-    updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T, relationships?: RelationshipsMapping): T;
+    updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T): T;
+    resetEntityFile<T>(target: string, targetPath: string): string;
 }
 
 export interface BaseSchemaObject {
-    id: number;
+    id?: number;
 }
 
 export interface ServerSchemaObject extends BaseSchemaObject {
-    uid: number;
+    fk_users_id: number;
+    name: string;
+    runtime: string;
     path: string;
 }
 
 export interface UserSchemaObject extends BaseSchemaObject {
     username: string;
     hash: string;
-    servers: EntityKVPair<ServerSchemaObject>;
 }
 
 export interface EntityFile<T> {
@@ -29,5 +31,4 @@ export interface EntityFile<T> {
 }
 
 export type EntitiesDictionary = Record<string, string>;
-export type RelationshipsMapping = Record<string, number>;
 export type EntityKVPair<T> = Record<number, T>;
