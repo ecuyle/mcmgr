@@ -72,6 +72,38 @@ export class MCFileManager implements MCFMInterface {
         }
     }
 
+    /**
+     * Deletes a single entity within an entity json data file
+     * 
+     * @param target: string - Target entity json data file
+     * @param id: number - Uniquely identifies a single entity
+     * 
+     * @returns true if the entity was successfully deleted. false if nothing
+     *   was deleted
+     */
+    public deleteById<T>(target: string, id: number): boolean {
+        try {
+            const entityFile: EntityFile<T> = this.getAll(target);
+            const entityFilePath: string | void = this._getPathForEntity(target);
+    
+            if (!entityFilePath) {
+                throw new Error(`FATAL :: deleteById :: File path for ${target} was not found`);
+            }
+    
+            if (entityFile.dict[id] !== undefined) {
+                delete entityFile.dict[id];
+                const data: Uint8Array = new Uint8Array(Buffer.from(JSON.stringify(entityFile)));
+                writeFileSync(entityFilePath, data);
+
+                return true;
+            }
+    
+            return false;
+        } catch(e) {
+            return e;
+        }
+    }
+
     private _getPathForEntity(entityName: string): string | void {
         return this.entities[entityName];
     }

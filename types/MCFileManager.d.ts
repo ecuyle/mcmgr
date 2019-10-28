@@ -5,6 +5,7 @@ export interface MCFMInterface {
     getAll<T>(entity: string): EntityFile<T>;
     getOneById<T>(entity: string, id: number): T | void;
     updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T): T;
+    deleteById<T>(target: string, id: number): boolean;
     resetEntityFile<T>(target: string, targetPath: string): string;
 }
 

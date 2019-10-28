@@ -6,8 +6,9 @@ import {
     UserSchemaObject,
     EntityFile,
 } from '../types/MCFileManager';
+import { ServeStaticOptions } from 'serve-static';
 
-const dataPath: string = `${__dirname}/../../data`;
+const dataPath: string = `${__dirname}/../../data-test`;
 
 export function runMCFileManagerTests() {
     describe('MCFileManager', function () {
@@ -133,6 +134,40 @@ export function runMCFileManagerTests() {
 
                 it('should return undefined if a user does not exist', function() {
                     assert.equal(undefined, mcfm.getOneById<UserSchemaObject>('users', 100));
+                });
+            });
+        });
+
+        describe('deleteById', function() {
+            describe('server', function() {
+                it('should return true if server is successfully deleted with the provided id', function() {
+                    const result: boolean = mcfm.deleteById<ServerSchemaObject>('servers', 0);
+                    delete expectedServerEntityFile.dict[0];
+                    assert.deepEqual(expectedServerEntityFile, mcfm.getAll<ServerSchemaObject>('servers'));
+                    assert.ok(result);
+                });
+
+                it('should return false if no server exists at the provided id', function() {
+                    const result: boolean = mcfm.deleteById<ServerSchemaObject>('servers', 0);
+                    delete expectedServerEntityFile.dict[0];
+                    assert.deepEqual(expectedServerEntityFile, mcfm.getAll<ServerSchemaObject>('servers'));
+                    assert.ok(!result)
+                });
+            });
+
+            describe('users', function() {
+                it('should return true if user is successfully deleted with the provided id', function() {
+                    const result: boolean = mcfm.deleteById<UserSchemaObject>('users', 0);
+                    delete expectedUserEntityFile.dict[0];
+                    assert.deepEqual(expectedUserEntityFile, mcfm.getAll<UserSchemaObject>('users'));
+                    assert.ok(result)
+                });
+
+                it('should return false if no user exists at the provided id', function() {
+                    const result: boolean = mcfm.deleteById<UserSchemaObject>('users', 0);
+                    delete expectedUserEntityFile.dict[0];
+                    assert.deepEqual(expectedUserEntityFile, mcfm.getAll<UserSchemaObject>('users'));
+                    assert.ok(!result)
                 });
             });
         });
