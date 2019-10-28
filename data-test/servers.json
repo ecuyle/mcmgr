@@ -1,1 +1,1 @@
-{"entity":"servers","latestId":-1,"dict":{}}
+{"entity":"servers","latestId":3,"dict":{"1":{"fk_users_id":1,"name":"srv1","runtime":"1.13","path":"/home/ecuyle/srv1","id":1},"2":{"fk_users_id":1,"name":"srv2","runtime":"1.14.1","path":"/home/ecuyle/srv2","id":2},"3":{"fk_users_id":2,"name":"srv2","runtime":"1.14","path":"/home/ecuyle/srv3","id":3}}}
