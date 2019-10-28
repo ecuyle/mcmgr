@@ -6,7 +6,6 @@ import {
     UserSchemaObject,
     EntityFile,
 } from '../types/MCFileManager';
-import { ServeStaticOptions } from 'serve-static';
 
 const dataPath: string = `${__dirname}/../../data-test`;
 
@@ -168,6 +167,100 @@ export function runMCFileManagerTests() {
                     delete expectedUserEntityFile.dict[0];
                     assert.deepEqual(expectedUserEntityFile, mcfm.getAll<UserSchemaObject>('users'));
                     assert.ok(!result)
+                });
+            });
+        });
+
+        describe('query', function() {
+            describe('server', function() {
+                it('should return an empty array if there are no results for the provided query params', function() {
+                    const expected: Array<ServerSchemaObject> = [];
+                    const actual: Array<ServerSchemaObject> = mcfm.query<ServerSchemaObject>('servers', '?fk_users_id=0');
+
+                    assert.deepEqual(expected, actual);
+                });
+
+                it('should return an array of servers appropriate to the query params provided', function() {
+                    const data: Array<ServerSchemaObject> = [
+                        {
+                            id: 1,
+                            fk_users_id: 1,
+                            name: 'srv1',
+                            runtime: '1.13',
+                            path: '/home/ecuyle/srv1',
+                        },
+                        {
+                            id: 2,
+                            fk_users_id: 1,
+                            name: 'srv2',
+                            runtime: '1.14.1',
+                            path: '/home/ecuyle/srv2',
+                        },
+                        {
+                            id: 3,
+                            fk_users_id: 2,
+                            name: 'srv2',
+                            runtime: '1.14',
+                            path: '/home/ecuyle/srv3',
+                        },
+                    ];
+
+                    const expectedSingleParam = data.slice(0, 2);
+                    const expectedMultiParam = data.slice(1, 2);
+
+                    data.forEach(server => {
+                        delete server.id;
+                        mcfm.updateOrAdd<ServerSchemaObject>('servers', server);
+                    });
+
+                    const actualSingleParam: Array<ServerSchemaObject> = mcfm.query<ServerSchemaObject>('servers', '?fk_users_id=1');
+                    const actualMultiParam: Array<ServerSchemaObject> = mcfm.query<ServerSchemaObject>('servers', '?fk_users_id=1&runtime=1.14.1');
+
+                    assert.deepEqual(expectedSingleParam, actualSingleParam);
+                    assert.deepEqual(expectedMultiParam, actualMultiParam);
+                });
+            });
+
+            describe('user', function() {
+                it('should return an empty array if there are no results for the provided query params', function() {
+                    const expected: Array<UserSchemaObject> = [];
+                    const actual: Array<UserSchemaObject> = mcfm.query<UserSchemaObject>('users', '?hash=asdf34');
+
+                    assert.deepEqual(expected, actual);
+                });
+
+                it('should return an array of users appropriate to the query params provided', function() {
+                    const data: Array<UserSchemaObject> = [
+                        {
+                            id: 1,
+                            username: 'johnnycash',
+                            hash: '12345',
+                        },
+                        {
+                            id: 2,
+                            username: 'johnnydepp',
+                            hash: '12345',
+                        },
+                        {
+                            id: 3,
+                            username: 'janicekepp',
+                            hash: 'asdf',
+                        },
+                    ];
+
+                    const expectedSingleParam = data.slice(0, 2);
+                    const expectedMultiParam = data.slice(1, 2);
+
+                    data.forEach(user => {
+                        delete user.id;
+                        mcfm.updateOrAdd<UserSchemaObject>('users', user);
+                    });
+
+                    const actualSingleParam: Array<UserSchemaObject> = mcfm.query<UserSchemaObject>('users', '?hash=12345');
+                    const actualMultiParam: Array<UserSchemaObject> = mcfm.query<UserSchemaObject>('users', '?hash=12345&username=johnnydepp');
+
+                    assert.deepEqual(expectedSingleParam, actualSingleParam);
+                    assert.deepEqual(expectedMultiParam, actualMultiParam);
                 });
             });
         });

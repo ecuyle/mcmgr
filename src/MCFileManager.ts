@@ -10,6 +10,8 @@ import {
     EntitiesDictionary,
     EntityFile,
     BaseSchemaObject,
+    EntityKVPair,
+    ParamsDict,
 } from '../types/MCFileManager';
 
 export class MCFileManager implements MCFMInterface {
@@ -38,7 +40,7 @@ export class MCFileManager implements MCFMInterface {
     }
 
     public getOneById<T>(target: string, id: number): T | void {
-        const entityFile: EntityFile<T> = this.getAll(target);
+        const entityFile: EntityFile<T> = this.getAll<T>(target);
         const entity: T | void = entityFile.dict[id];
 
         return entity;
@@ -46,7 +48,7 @@ export class MCFileManager implements MCFMInterface {
 
     public updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T): T {
         try {
-            const entityFile: EntityFile<T> = this.getAll(target);
+            const entityFile: EntityFile<T> = this.getAll<T>(target);
             const path: string | void = this._getPathForEntity(target);
 
             if (!path) {
@@ -83,7 +85,7 @@ export class MCFileManager implements MCFMInterface {
      */
     public deleteById<T>(target: string, id: number): boolean {
         try {
-            const entityFile: EntityFile<T> = this.getAll(target);
+            const entityFile: EntityFile<T> = this.getAll<T>(target);
             const entityFilePath: string | void = this._getPathForEntity(target);
     
             if (!entityFilePath) {
@@ -102,6 +104,83 @@ export class MCFileManager implements MCFMInterface {
         } catch(e) {
             return e;
         }
+    }
+
+    /**
+     * Queries an entity data file given well-formed params and returns 
+     * desired entities in an EntityKVPair object
+     *  
+     * @param target: string - Target entity data file 
+     * @param params: string - Well-formed query params
+     * 
+     * @returns an EntityKVPair<T> object if the query params and target 
+     *   are well formed. An error is thrown if otherwise
+     * 
+     * @note - Well formed query params ought to look something like:
+     *   `fk_user_id=4&runtime=1.13` or `?fk_user_id=4&runtime=1.13`
+     */
+    public query<T>(target: string, params: string): Array<T> {
+        try {
+            const { dict }: EntityFile<T> = this.getAll<T>(target);
+            const paramsDict: ParamsDict = this._createParamsDict(params);
+            const results: Array<T> = [];
+
+            Object.keys(dict).forEach(key => {
+                const entity: T = dict[key];
+
+                if (this._matchEntityWithQueryParams<T>(entity, paramsDict)) {
+                    results.push(entity);
+                }
+            });
+            
+            return results;
+        } catch(e) {
+            return e;
+        }
+    }
+
+    /**
+     * Compares a dict of query param key-value pairs against the key-value
+     * pairs in a given entity
+     * 
+     * @param entity: T - Entity to match params against
+     * @param paramsDict: ParamsDict - Dict of query param key-value pairs
+     * 
+     * @returns true if all provided query params exist and match within the entity.
+     *   Returns false otherwise.
+     */
+    private _matchEntityWithQueryParams<T>(entity: T, paramsDict: ParamsDict): boolean {
+        const keys: Array<string> = Object.keys(paramsDict);
+
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const value = paramsDict[key];
+
+            if (String(entity[key]) !== String(value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates a dict from a query params string
+     *  
+     * @param params: string - Query params string
+     * 
+     * @returns a ParamsDict
+     */
+    private _createParamsDict(params: string): ParamsDict {
+        const paramsDict: ParamsDict = {};
+        const paramsRegex: RegExp = /([^?=&]+)(=[^&]*)/gm;
+        params.match(paramsRegex)
+            .forEach(param => {
+                const [k, v]: Array<string> = param.split('=');
+                paramsDict[k] = v;
+            });
+
+        return paramsDict;
     }
 
     private _getPathForEntity(entityName: string): string | void {

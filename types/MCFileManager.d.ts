@@ -6,6 +6,7 @@ export interface MCFMInterface {
     getOneById<T>(entity: string, id: number): T | void;
     updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T): T;
     deleteById<T>(target: string, id: number): boolean;
+    query<T>(target: string, params: string): Array<T>;
     resetEntityFile<T>(target: string, targetPath: string): string;
 }
 
@@ -33,3 +34,4 @@ export interface EntityFile<T> {
 
 export type EntitiesDictionary = Record<string, string>;
 export type EntityKVPair<T> = Record<number, T>;
+export type ParamsDict = Record<string, string>;
