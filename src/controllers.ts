@@ -8,7 +8,7 @@ import { Logger } from 'pino';
 
 const logger: Logger = pino();
 
-const dataDirPath = `${__dirname}/../data`;
+const dataDirPath = `${__dirname}/../../data`;
 const MCFM: MCFMInterface = new MCFileManager(dataDirPath);
 
 export async function createServer(req: Request, res: Response): Promise<void> {
