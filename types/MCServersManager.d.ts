@@ -1,14 +1,19 @@
+import { MCFMInterface } from '../types/MCFileManager';
+
 export interface MCSMInterface {
-    createServer(name: string, runtime: string, isEulaAccepted: boolean, config?: ServerConfig): Promise<number>;
-    serverId: number;
+    createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<number>;
+    serverId?: number;
     name: string;
     runtime: string;
     config: ServerConfig;
     isEulaAccepted: boolean;
     serverDirPath: string;
+    userId: number;
+    mcfm: MCFMInterface;
 }
 
 export interface CreateServerInterface {
+    userId: number;
     name: string;
     runtime: string;
     isEulaAccepted: boolean;

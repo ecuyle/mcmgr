@@ -7,12 +7,15 @@ import axios, { AxiosResponse } from 'axios';
 import { mkdir } from 'shelljs';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
+import { MCFileManager } from './MCFileManager';
 import { shallowCopy } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
 import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
+import { MCFMInterface, EntityFile, ServerSchemaObject } from '../types/MCFileManager';
 import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
+import { ServeStaticOptions } from 'serve-static';
 
 export class MCServersManager implements MCSMInterface {
     public static BASE_PATH: string = __dirname;
@@ -26,18 +29,20 @@ export class MCServersManager implements MCSMInterface {
     public config: ServerConfig;
     public isEulaAccepted: boolean;
     public serverDirPath: string;
+    public userId: number;
+    public mcfm: MCFMInterface;
 
-    public constructor(serverId: number = -1) {
-        this.serverId = this._retrieveOrGenerateServerId(serverId);
-        this.name = '';
-        this.runtime = '';
+    public constructor(mcfm: MCFMInterface, serverId?: number) {
+        this.serverId = serverId;
+        this.mcfm = mcfm;
         this.config = {};
         this.isEulaAccepted = false;
         this.serverDirPath = '';
+
         this._setServerPropsIfExists();
     }
 
-    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, config: ServerConfig = {}): Promise<number> {
+    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, userId: number, config: ServerConfig = {}): Promise<number> {
         try {
             if (this.serverId) {
                 throw new Error('FATAL INTERNAL :: createServer :: Server Id already exists on this manager. Cannot create new server with this manager');
@@ -64,18 +69,21 @@ export class MCServersManager implements MCSMInterface {
             mkdir(this.serverDirPath);
             await this._downloadServerRuntime();
             this._copyTemplatesIntoServerDirWithData();
+
+            const newServer: ServerSchemaObject = {
+                fk_users_id: userId,
+                name: name,
+                runtime: runtime,
+                path: this.serverDirPath,
+            };
+
+            const server: ServerSchemaObject = this.mcfm.updateOrAdd<ServerSchemaObject>('servers', newServer);
+            this.serverId = server.id;
+
             return this.serverId;
         } catch (e) {
             return e;
         }
-    }
-
-    private _retrieveOrGenerateServerId(serverId: number): number {
-        if (serverId === -1) {
-            return 0;
-        }
-
-        return serverId;
     }
 
     private _createEulaWithUserInput(): void {
@@ -116,8 +124,24 @@ export class MCServersManager implements MCSMInterface {
         });
     }
 
-    private _setServerPropsIfExists() {
-        // TODO
+    private _setServerPropsIfExists(): void {
+        const { serverId } = this;
+
+        if (serverId === undefined) {
+            return;
+        }
+
+        const serverData: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
+
+        if (!serverData) {
+            throw new Error(`FATAL :: _setServerPropsIfExsts :: Server Id ${serverId} was not found`);
+        }
+
+        this.name = serverData.name;
+        this.runtime = serverData.runtime;
+        this.serverDirPath = serverData.path;
+
+        // TODO: get config from file
     }
 
     private _copyTemplatesIntoServerDirWithData(): void {
