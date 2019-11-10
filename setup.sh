@@ -1,4 +1,8 @@
 #!/bin/bash
+# make sure node 8 is being used
+nvm install 12
+nvm use 12
+
 # install node_modules
 npm install
 
