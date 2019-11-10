@@ -3,7 +3,7 @@ import bodyParser = require('body-parser');
 import pino = require('pino');
 import expressPinoLogger = require('express-pino-logger');
 
-import { createServer } from './controllers';
+import { createServer, createUser } from './controllers';
 
 import { Application } from 'express';
 import { Logger } from 'pino';
@@ -15,7 +15,9 @@ const PORT: string = process.env.PORT || '3000';
 app.use(bodyParser.json());
 app.use(expressPinoLogger({ logger }));
 
-app.post('/mcsrv', createServer);
+app.post('/api/mcusr', createUser);
+
+app.post('/api/mcsrv', createServer);
 
 app.listen(PORT, () => {
     logger.info(`Server running on port: ${PORT}`);

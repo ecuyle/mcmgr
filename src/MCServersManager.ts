@@ -7,7 +7,6 @@ import axios, { AxiosResponse } from 'axios';
 import { mkdir } from 'shelljs';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
-import { MCFileManager } from './MCFileManager';
 import { shallowCopy } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
 import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
