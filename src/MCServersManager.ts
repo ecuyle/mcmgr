@@ -15,7 +15,6 @@ import { MCFMInterface, EntityFile, ServerSchemaObject } from '../types/MCFileMa
 import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
-import { ServeStaticOptions } from 'serve-static';
 
 export class MCServersManager implements MCSMInterface {
     public static BASE_PATH: string = __dirname;

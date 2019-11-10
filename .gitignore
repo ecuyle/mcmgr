@@ -4,3 +4,5 @@ mcsrv-test/
 .vscode/
 dist/
 mcserver.log
+data/
+data-test/
