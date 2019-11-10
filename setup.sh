@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 # install node_modules
 npm install
 
