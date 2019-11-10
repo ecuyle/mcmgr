@@ -4,6 +4,7 @@
   "description": "mcmgr: Minecraft Manager",
   "main": "./built/main.js",
   "scripts": {
+    "setup": "./setup.sh",
     "test": "mocha ./dist/test",
     "server": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log",
     "server-dev": "rm -rf ./dist/ && tsc && node ./dist/src/server.js"
