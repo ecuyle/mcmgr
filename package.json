@@ -17,6 +17,7 @@
     "express": "^4.17.1",
     "express-pino-logger": "^4.0.0",
     "moment": "^2.24.0",
+    "path": "^0.12.7",
     "pino": "^5.13.5",
     "shelljs": "^0.8.3"
   },
