@@ -14,9 +14,10 @@ import { MCFMInterface, EntityFile, ServerSchemaObject } from '../types/MCFileMa
 import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
+import * as path from 'path';
 
 export class MCServersManager implements MCSMInterface {
-    public static BASE_PATH: string = __dirname;
+    public static BASE_PATH: string = path.join(__dirname, '..');
     public static EULA_FILENAME: string = 'eula.txt';
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager(); 
