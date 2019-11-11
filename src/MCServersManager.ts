@@ -7,7 +7,7 @@ import axios, { AxiosResponse } from 'axios';
 import { mkdir } from 'shelljs';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
-import { shallowCopy } from './utils.js';
+import { shallowCopy, generateUniqueId } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
 import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
 import { MCFMInterface, EntityFile, ServerSchemaObject } from '../types/MCFileManager';
@@ -17,7 +17,7 @@ import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 import * as path from 'path';
 
 export class MCServersManager implements MCSMInterface {
-    public static BASE_PATH: string = path.join(__dirname, '..');
+    public static BASE_PATH: string = path.join(__dirname, '..', '..', 'data');
     public static EULA_FILENAME: string = 'eula.txt';
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager(); 
@@ -59,16 +59,19 @@ export class MCServersManager implements MCSMInterface {
                 throw new Error('FATAL EXTERNAL :: createServer :: User must accept EULA to proceed');
             }
 
+            const uniquePathName = generateUniqueId();
+
             this.name = name;
             this.runtime = runtime;
             this.config = config;
             this.isEulaAccepted = isEulaAccepted;
-            this.serverDirPath = `${MCServersManager.BASE_PATH}/${name}`;
+            this.serverDirPath = `${MCServersManager.BASE_PATH}/${uniquePathName}`;
 
             mkdir(this.serverDirPath);
             await this._downloadServerRuntime();
             this._copyTemplatesIntoServerDirWithData();
 
+            console.log(userId);
             const newServer: ServerSchemaObject = {
                 fk_users_id: userId,
                 name: name,
