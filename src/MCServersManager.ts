@@ -59,6 +59,10 @@ export class MCServersManager implements MCSMInterface {
                 throw new Error('FATAL EXTERNAL :: createServer :: User must accept EULA to proceed');
             }
 
+            if (userId === undefined) {
+                throw new Error('FATAL EXTERNAL :: createServer :: User must provide userId');
+            }
+
             const uniquePathName = generateUniqueId();
 
             this.name = name;
