@@ -68,7 +68,7 @@ export const sendSuccessResponse = function(srvSuccessResponse: SrvSuccessRespon
 //     var privateName = ID();
 //     var o = { 'public': 'foo' };
 //     o[privateName] = 'bar';
-export const generateUniqueId = function() {
+export const generateUniqueId = function(): string {
     // Math.random should be unique because of its seeding algorithm.
     // Convert it to base 36 (numbers + letters), and grab the first 9 characters
     // after the decimal.
