@@ -4,9 +4,10 @@ import pino = require('pino');
 import expressPinoLogger = require('express-pino-logger');
 
 import { 
+    getUserById,
     getServersByUserId,
     createServer,
-    createUser
+    createUser,
 } from './controllers';
 
 import { Application } from 'express';
@@ -19,6 +20,7 @@ const PORT: string = process.env.PORT || '3000';
 app.use(bodyParser.json());
 app.use(expressPinoLogger({ logger }));
 
+app.get('/api/mcusr', getUserById);
 app.post('/api/mcusr', createUser);
 
 app.get('/api/mcsrv', getServersByUserId);

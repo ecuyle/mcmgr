@@ -14,6 +14,49 @@ const logger: Logger = pino();
 const dataDirPath = `${__dirname}/../../data`;
 const MCFM: MCFMInterface = new MCFileManager(dataDirPath);
 
+export async function getUserById(req: Request, res: Response): Promise<void> {
+    try {
+        const { query: { userId } }: Request = req;
+
+        if (!userId) {
+            throw new Error(`Query Param 'userId' is required`);
+        }
+
+        const user: UserSchemaObject | void = MCFM.getOneById<UserSchemaObject>('users', Number(userId));
+
+        if (!user) {
+            sendErrorResponse({
+                req,
+                res,
+                methodSrc: 'GET /api/mcusr .getUserById',
+                statusCode: 404,
+                e: new Error(`User with 'userId' ${userId} was not found`),
+                logger,
+            });
+
+            return;
+        }
+
+        sendSuccessResponse({
+            req,
+            res,
+            methodSrc: 'GET /api/mcusr .getUserById',
+            statusCode: 200,
+            msg: user,
+            logger,
+        });
+    } catch (e) {
+        sendErrorResponse({
+            req,
+            res,
+            methodSrc: 'GET /api/mcusr .getUserById',
+            statusCode: 400,
+            e,
+            logger,
+        });
+    }
+};
+
 export async function createUser(req: Request, res: Response): Promise<void> {
     const mcum: MCUMInterface = new MCUsersManager(MCFM);
     const { username, hash }: CreateUserInterface = req.body;
@@ -28,7 +71,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
             msg: user,
             logger,
         });
-    } catch(e) {
+    } catch (e) {
         sendErrorResponse({
             req,
             res,
@@ -42,14 +85,13 @@ export async function createUser(req: Request, res: Response): Promise<void> {
 
 export async function getServersByUserId(req: Request, res: Response): Promise<void> {
     try {
-        const { userId } = req.query;
+        const { query: { userId } }: Request = req;
 
-        if (userId === undefined) {
+        if (!userId) {
             throw new Error(`Query Param "userId" is required`);
         }
 
         const { dict: servers }: EntityFile<ServerSchemaObject> = MCFM.getAll<ServerSchemaObject>('servers');
-        console.log(servers);
         const filteredServers: Array<ServerSchemaObject> = [];
         Object.keys(servers).forEach(serverId => {
             const server = servers[serverId];
@@ -66,7 +108,7 @@ export async function getServersByUserId(req: Request, res: Response): Promise<v
             msg: filteredServers,
             logger,
         });
-    } catch(e) {
+    } catch (e) {
         sendErrorResponse({
             req,
             res,
@@ -105,8 +147,8 @@ export async function createServer(req: Request, res: Response): Promise<void> {
             msg: serverId,
             logger,
         });
-    } catch(e) {
-         sendErrorResponse({
+    } catch (e) {
+        sendErrorResponse({
             req,
             res,
             methodSrc: 'POST /api/mcsrv .createServer',
@@ -114,5 +156,5 @@ export async function createServer(req: Request, res: Response): Promise<void> {
             e,
             logger,
         });
-   }
+    }
 }
