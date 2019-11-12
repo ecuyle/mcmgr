@@ -14,7 +14,7 @@ const logger: Logger = pino();
 const dataDirPath = `${__dirname}/../../data`;
 const MCFM: MCFMInterface = new MCFileManager(dataDirPath);
 
-export async function getUserById(req: Request, res: Response): Promise<void> {
+export function getUserById(req: Request, res: Response): void {
     try {
         const { query: { userId } }: Request = req;
 
@@ -83,7 +83,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
     }
 }
 
-export async function getServersByUserId(req: Request, res: Response): Promise<void> {
+export function getServersByUserId(req: Request, res: Response): void {
     try {
         const { query: { userId } }: Request = req;
 
