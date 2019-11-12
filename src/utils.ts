@@ -24,7 +24,7 @@ export const sendErrorResponse = function(srvErrorResponse: SrvErrorResponse): v
         statusCode,
         e,
         logger,
-    } = srvErrorResponse;
+    }: SrvErrorResponse = srvErrorResponse;
 
     logger.error(`${methodSrc} :: ${statusCode} :: ${req} :: ${e}`);
     console.log(e.message);
@@ -41,7 +41,7 @@ export const sendSuccessResponse = function(srvSuccessResponse: SrvSuccessRespon
         statusCode,
         msg,
         logger,
-    } = srvSuccessResponse;
+    }: SrvSuccessResponse = srvSuccessResponse;
 
     logger.info(`${methodSrc} :: ${statusCode} :: ${req} :: ${msg}`);
     res.status(statusCode).send({ data: msg });
