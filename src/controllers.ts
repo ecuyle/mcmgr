@@ -8,11 +8,18 @@ import { Logger } from 'pino';
 import { CreateUserInterface, MCUMInterface } from '../types/MCUsersManager';
 import { MCUsersManager } from './MCUsersManager';
 import { sendErrorResponse, sendSuccessResponse } from './utils';
+import { MCEventBus } from './pubsub/MCEventBus';
+import { MCEventBusInterface } from '../types/MCEventBus';
 
 const logger: Logger = pino();
 
 const dataDirPath = `${__dirname}/../../data`;
 const MCFM: MCFMInterface = new MCFileManager(dataDirPath);
+const eventBus: MCEventBusInterface = new MCEventBus(MCFM);
+
+export function publishEvent(req: Request, res: Response): Promise<void> {
+    return;
+}
 
 export function getUserById(req: Request, res: Response): void {
     try {
