@@ -8,6 +8,7 @@ import {
     getServersByUserId,
     createServer,
     createUser,
+    publishEvent,
 } from './controllers';
 
 import { Application } from 'express';
@@ -25,6 +26,8 @@ app.post('/api/mcusr', createUser);
 
 app.get('/api/mcsrv', getServersByUserId);
 app.post('/api/mcsrv', createServer);
+
+app.post('/api/events', publishEvent);
 
 app.listen(PORT, () => {
     logger.info(`Server running on port: ${PORT}`);

@@ -1,0 +1,5 @@
+export const topics = {
+    SERVER_START: 'SERVER_START',
+    SERVER_STOP: 'SERVER_STOP',
+    ISSUE_COMMAND: 'ISSUE_COMMAND',
+};
