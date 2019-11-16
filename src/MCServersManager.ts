@@ -10,7 +10,7 @@ import { MCVersionsManager } from './MCVersionsManager';
 import { shallowCopy, generateUniqueId } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
 import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
-import { MCFMInterface, EntityFile, ServerSchemaObject } from '../types/MCFileManager';
+import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
 import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';

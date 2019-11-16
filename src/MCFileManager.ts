@@ -5,12 +5,9 @@ import {
 } from 'fs';
 import {
     MCFMInterface,
-    ServerSchemaObject,
-    UserSchemaObject,
     EntitiesDictionary,
     EntityFile,
     BaseSchemaObject,
-    EntityKVPair,
     ParamsDict,
 } from '../types/MCFileManager';
 
