@@ -3,12 +3,10 @@ import { MCEventBusInterface, SubscriptionsContainer, Subscribers, MCEvent, Topi
 import { topics } from "./topics";
 
 export class MCEventBus implements MCEventBusInterface {
-    mcfm: MCFMInterface;
     subscriptionsContainer: SubscriptionsContainer;
 
-    constructor(mcfm: MCFMInterface) {
-        this.mcfm = mcfm;
-        this.subscriptionsContainer = {};
+    constructor(subscriptionsContainer?: SubscriptionsContainer) {
+        this.subscriptionsContainer = subscriptionsContainer || {};
     }
 
     publish(event: MCEvent): void {

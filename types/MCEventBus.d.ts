@@ -1,7 +1,7 @@
 import { MCFMInterface } from "./MCFileManager";
 
 export interface MCEventBusInterface {
-    mcfm: MCFMInterface;
+    subscriptionsContainer: SubscriptionsContainer;
 }
 
 export interface MCEvent {
