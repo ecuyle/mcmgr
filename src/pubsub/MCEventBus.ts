@@ -1,17 +1,14 @@
-import { MCFMInterface } from "../../types/MCFileManager";
 import { MCEventBusInterface, SubscriptionsContainer, Subscribers, MCEvent, Topic } from "../../types/MCEventBus";
 import { topics } from "./topics";
 
 export class MCEventBus implements MCEventBusInterface {
-    mcfm: MCFMInterface;
-    subscriptionsContainer: SubscriptionsContainer;
+    public subscriptionsContainer: SubscriptionsContainer;
 
-    constructor(mcfm: MCFMInterface) {
-        this.mcfm = mcfm;
-        this.subscriptionsContainer = {};
+    constructor(subscriptionsContainer?: SubscriptionsContainer) {
+        this.subscriptionsContainer = subscriptionsContainer || {};
     }
 
-    publish(event: MCEvent): void {
+    public publish(event: MCEvent): void {
         const { topic }: MCEvent = event;
         const subscribers: Subscribers = this.subscriptionsContainer[topic];
         subscribers.forEach(subscriber => {
@@ -19,7 +16,7 @@ export class MCEventBus implements MCEventBusInterface {
         });
     }
 
-    subscribe(topic: string, subscriber: Function): string {
+    public subscribe(topic: string, subscriber: Function): string {
         const subscriptions: Subscribers = this.subscriptionsContainer[topic];
         if (subscriptions) {
             subscriptions.push(subscriber);
@@ -30,7 +27,7 @@ export class MCEventBus implements MCEventBusInterface {
         return topic;
     }
 
-    createEvent(desiredTopic: Topic, payload: any): MCEvent {
+    public createEvent(desiredTopic: Topic, payload: any): MCEvent {
         const topic: Topic | void = topics[desiredTopic];
         const timestamp: number = Date.now();
 
@@ -43,5 +40,9 @@ export class MCEventBus implements MCEventBusInterface {
             payload,
             timestamp,
         };
+    }
+
+    public getTopic(desiredTopic: Topic): Topic | null {
+        return topics[desiredTopic] || null;
     }
 }

@@ -7,18 +7,60 @@ import pino = require('pino');
 import { Logger } from 'pino';
 import { CreateUserInterface, MCUMInterface } from '../types/MCUsersManager';
 import { MCUsersManager } from './MCUsersManager';
-import { sendErrorResponse, sendSuccessResponse } from './utils';
+import { sendErrorResponse, sendSuccessResponse, copy } from './utils';
 import { MCEventBus } from './pubsub/MCEventBus';
-import { MCEventBusInterface } from '../types/MCEventBus';
+import { MCEventBusInterface, MCEvent, Topic } from '../types/MCEventBus';
+import e = require('express');
 
 const logger: Logger = pino();
 
 const dataDirPath = `${__dirname}/../../data`;
-const MCFM: MCFMInterface = new MCFileManager(dataDirPath);
-const eventBus: MCEventBusInterface = new MCEventBus(MCFM);
+const eventBus: MCEventBusInterface = new MCEventBus();
+const MCFM: MCFMInterface = new MCFileManager(dataDirPath, eventBus);
 
-export function publishEvent(req: Request, res: Response): Promise<void> {
-    return;
+export function publishEvent(req: Request, res: Response): void {
+    const targetTopic: Topic | null = eventBus.getTopic(req.body.topic);
+
+    if (!targetTopic) {
+        sendErrorResponse({
+            req,
+            res,
+            methodSrc: 'POST /api/events .publishEvent',
+            statusCode: 400,
+            e: new Error(`Topic '${targetTopic}' is invalid.`),
+            logger,
+        });
+    }
+
+    const payload = copy(req.body, true);
+
+    const event: MCEvent = eventBus.createEvent(targetTopic, payload);
+
+    const successCallback = (msg) => {
+        sendSuccessResponse({
+            req,
+            res,
+            methodSrc: 'POST /api/events ./publishEvent',
+            statusCode: 201,
+            msg,
+            logger,
+        });
+    };
+
+    const failureCallback = (e: Error) => {
+        sendErrorResponse({
+            req,
+            res,
+            methodSrc: 'POST /api/events .publishEvent',
+            statusCode: 400,
+            e,
+            logger,
+        });
+    };
+
+    payload.successCallback = successCallback;
+    payload.failureCallback = failureCallback;
+    eventBus.publish(event);
 }
 
 export function getUserById(req: Request, res: Response): void {
@@ -36,7 +78,7 @@ export function getUserById(req: Request, res: Response): void {
                 req,
                 res,
                 methodSrc: 'GET /api/mcusr .getUserById',
-                statusCode: 404,
+                statusCode: 400,
                 e: new Error(`User with 'userId' ${userId} was not found`),
                 logger,
             });

@@ -7,7 +7,7 @@ import axios, { AxiosResponse } from 'axios';
 import { mkdir } from 'shelljs';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
-import { shallowCopy, generateUniqueId } from './utils.js';
+import { copy, generateUniqueId } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
 import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
 import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
@@ -20,7 +20,7 @@ export class MCServersManager implements MCSMInterface {
     public static BASE_PATH: string = path.join(__dirname, '..', '..', 'data');
     public static EULA_FILENAME: string = 'eula.txt';
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
-    public static MCVM: MCVMInterface = new MCVersionsManager(); 
+    public static MCVM: MCVMInterface = new MCVersionsManager();
 
     public serverId: number;
     public name: string;
@@ -93,7 +93,7 @@ export class MCServersManager implements MCSMInterface {
     }
 
     private _createEulaWithUserInput(): void {
-        const eulaFile: Array<string> = shallowCopy(DEFAULT_EULA_ROWS);
+        const eulaFile: Array<string> = copy(DEFAULT_EULA_ROWS);
         const eulaAcceptanceString: string = `eula=${this.isEulaAccepted}`;
         const eulaDest: string = `${this.serverDirPath}/${MCServersManager.EULA_FILENAME}`;
 
@@ -106,7 +106,7 @@ export class MCServersManager implements MCSMInterface {
     }
 
     private async _createServerPropertiesWithConfig(): Promise<void> {
-        const defaultsCopy: ServerConfig = shallowCopy(DEFAULT_SERVER_PROPERTIES);
+        const defaultsCopy: ServerConfig = copy(DEFAULT_SERVER_PROPERTIES);
         this._updateDefaultServerPropertiesWithConfig(defaultsCopy);
 
         const defaultsCopyArray: Array<string> = ['#Minecraft server properties', `#${moment().format('LLLL')}`];
