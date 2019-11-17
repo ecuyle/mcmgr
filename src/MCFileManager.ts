@@ -10,13 +10,17 @@ import {
     BaseSchemaObject,
     ParamsDict,
 } from '../types/MCFileManager';
+import { MCEventBusInterface } from '../types/MCEventBus';
 
 export class MCFileManager implements MCFMInterface {
     public rootDataPath: string;
     public entities: EntitiesDictionary;
 
-    public constructor(rootDataPath: string) {
+    private _eventBus: MCEventBusInterface;
+
+    public constructor(rootDataPath: string, eventBus: MCEventBusInterface) {
         this.rootDataPath = rootDataPath;
+        this._eventBus = eventBus;
         this._retrieveAndSetEntities();
     }
 
@@ -60,11 +64,11 @@ export class MCFileManager implements MCFMInterface {
                 entityFile.latestId += 1;
                 newEntity.id = entityFile.latestId;
             }
-            
+
             entityFile.dict[newEntity.id] = newEntity;
             const data: Uint8Array = new Uint8Array(Buffer.from(JSON.stringify(entityFile)));
             writeFileSync(path, data);
-    
+
             return newEntity;
         } catch(e) {
             return e;
@@ -73,10 +77,10 @@ export class MCFileManager implements MCFMInterface {
 
     /**
      * Deletes a single entity within an entity json data file
-     * 
+     *
      * @param target: string - Target entity json data file
      * @param id: number - Uniquely identifies a single entity
-     * 
+     *
      * @returns true if the entity was successfully deleted. false if nothing
      *   was deleted
      */
@@ -84,11 +88,11 @@ export class MCFileManager implements MCFMInterface {
         try {
             const entityFile: EntityFile<T> = this.getAll<T>(target);
             const entityFilePath: string | void = this._getPathForEntity(target);
-    
+
             if (!entityFilePath) {
                 throw new Error(`FATAL :: deleteById :: File path for ${target} was not found`);
             }
-    
+
             if (entityFile.dict[id] !== undefined) {
                 delete entityFile.dict[id];
                 const data: Uint8Array = new Uint8Array(Buffer.from(JSON.stringify(entityFile)));
@@ -96,7 +100,7 @@ export class MCFileManager implements MCFMInterface {
 
                 return true;
             }
-    
+
             return false;
         } catch(e) {
             return e;
@@ -104,15 +108,15 @@ export class MCFileManager implements MCFMInterface {
     }
 
     /**
-     * Queries an entity data file given well-formed params and returns 
+     * Queries an entity data file given well-formed params and returns
      * desired entities in an EntityKVPair object
-     *  
-     * @param target: string - Target entity data file 
+     *
+     * @param target: string - Target entity data file
      * @param params: string - Well-formed query params
-     * 
-     * @returns an EntityKVPair<T> object if the query params and target 
+     *
+     * @returns an EntityKVPair<T> object if the query params and target
      *   are well formed. An error is thrown if otherwise
-     * 
+     *
      * @note - Well formed query params ought to look something like:
      *   `fk_user_id=4&runtime=1.13` or `?fk_user_id=4&runtime=1.13`
      */
@@ -129,7 +133,7 @@ export class MCFileManager implements MCFMInterface {
                     results.push(entity);
                 }
             });
-            
+
             return results;
         } catch(e) {
             return e;
@@ -139,10 +143,10 @@ export class MCFileManager implements MCFMInterface {
     /**
      * Compares a dict of query param key-value pairs against the key-value
      * pairs in a given entity
-     * 
+     *
      * @param entity: T - Entity to match params against
      * @param paramsDict: ParamsDict - Dict of query param key-value pairs
-     * 
+     *
      * @returns true if all provided query params exist and match within the entity.
      *   Returns false otherwise.
      */
@@ -163,9 +167,9 @@ export class MCFileManager implements MCFMInterface {
 
     /**
      * Creates a dict from a query params string
-     *  
+     *
      * @param params: string - Query params string
-     * 
+     *
      * @returns a ParamsDict
      */
     private _createParamsDict(params: string): ParamsDict {
@@ -183,11 +187,11 @@ export class MCFileManager implements MCFMInterface {
     private _getPathForEntity(entityName: string): string | void {
         return this.entities[entityName];
     }
-    
+
     private _retrieveAndSetEntities(): void {
         const files = readdirSync(this.rootDataPath);
         const entitiesDict: EntitiesDictionary = {};
-        
+
         files.forEach(file => {
             const entity = file.split('.')[0];
             entitiesDict[entity] = `${this.rootDataPath}/${file}`;
