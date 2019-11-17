@@ -6,12 +6,15 @@ import {
     UserSchemaObject,
     EntityFile,
 } from '../types/MCFileManager';
+import { MCEventBusInterface } from '../types/MCEventBus';
+import { MCEventBus } from '../src/pubsub/MCEventBus';
 
 const dataPath: string = `${__dirname}/../../data-test`;
+const eventBus: MCEventBusInterface = new MCEventBus();
 
 export function runMCFileManagerTests() {
     describe('MCFileManager', function () {
-        const mcfm: MCFMInterface = new MCFileManager(dataPath);
+        const mcfm: MCFMInterface = new MCFileManager(dataPath, eventBus);
         mcfm.resetEntityFile<UserSchemaObject>('users', `${dataPath}/users.json`);
         mcfm.resetEntityFile<ServerSchemaObject>('servers', `${dataPath}/servers.json`);
 
