@@ -27,7 +27,7 @@ export class MCEventBus implements MCEventBusInterface {
         return topic;
     }
 
-    public createEvent(desiredTopic: Topic, payload: any): MCEvent {
+    public createEvent(desiredTopic: Topic, payload: any, successCallback: Function = null, errorCallback: Function = null): MCEvent {
         const topic: Topic | void = topics[desiredTopic];
         const timestamp: number = Date.now();
 
@@ -39,6 +39,8 @@ export class MCEventBus implements MCEventBusInterface {
             topic,
             payload,
             timestamp,
+            successCallback,
+            errorCallback,
         };
     }
 

@@ -1,15 +1,16 @@
 import {
+    readdirSync,
     writeFileSync,
     createWriteStream,
     WriteStream,
 } from 'fs';
 import axios, { AxiosResponse } from 'axios';
-import { mkdir } from 'shelljs';
+import { mkdir, exec, cd } from 'shelljs';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
 import { copy, generateUniqueId } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
-import { MCSMInterface, ServerConfig } from '../types/MCServersManager';
+import { MCSMInterface, ServerConfig, ServersList } from '../types/MCServersManager';
 import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
 import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
@@ -17,6 +18,7 @@ import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 import * as path from 'path';
 import { MCEventBusInterface, MCEvent } from '../types/MCEventBus';
 import { topics } from './pubsub/topics';
+import { ChildProcess } from 'child_process';
 
 export class MCServersManager implements MCSMInterface {
     public static BASE_PATH: string = path.join(__dirname, '..', '..', 'data');
@@ -26,16 +28,97 @@ export class MCServersManager implements MCSMInterface {
 
     public mcfm: MCFMInterface;
     public eventBus: MCEventBusInterface;
+    public activeServers: ServersList;
 
     public constructor(mcfm: MCFMInterface, eventBus: MCEventBusInterface) {
         this.mcfm = mcfm;
         this.eventBus = eventBus;
+        this.activeServers = {};
 
         eventBus.subscribe(topics.SERVER_START, this.startServer.bind(this));
+        eventBus.subscribe(topics.SERVER_STOP, this.stopServer.bind(this));
+        eventBus.subscribe(topics.ISSUE_COMMAND, this.issueCommand.bind(this));
     }
 
     public startServer(event: MCEvent): boolean {
-        console.log(event);
+        const { payload: { serverId }, successCallback }: MCEvent = event;
+
+        if (typeof Number(serverId) !== 'number') {
+            return false;
+        }
+
+        const server: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
+
+        if (!server) {
+            return false;
+        }
+
+        const { path, runtime }: ServerSchemaObject = server;
+        const serverFiles: Array<string> = readdirSync(path);
+        const jarfile: string = serverFiles.find(file => {
+            return !!file.match(new RegExp(`${runtime}.jar$`));
+        });
+
+        // TODO: sanitize jarfile and path
+        cd(path);
+        const child: ChildProcess = exec(`java -Xmx1G -Xmx1G -jar ${path}/${jarfile} nogui`, { async: true });
+        const { pid }: ChildProcess = child;
+        cd('..');
+
+        child.stdout.on('data', data => {
+            console.log(data);
+        });
+
+        if (this.activeServers[pid]) {
+            const stopServerEvent: MCEvent = this.eventBus.createEvent(topics.SERVER_STOP, { pid });
+            this.eventBus.publish(stopServerEvent);
+        }
+
+        this.activeServers[pid] = child;
+
+        if (successCallback) {
+            successCallback({ message: `Server successfully started with process ${pid}`, pid, event });
+            delete event.successCallback;
+        }
+
+        return true;
+    }
+
+    public stopServer(event: MCEvent): boolean {
+        const { payload: { pid }, successCallback }: MCEvent = event;
+
+        if (typeof Number(pid) !== 'number') {
+            return false;
+        }
+
+        const stopServerEvent: MCEvent = this.eventBus.createEvent(topics.ISSUE_COMMAND, { command: 'stop', pid }, successCallback);
+        this.eventBus.publish(stopServerEvent);
+        delete this.activeServers[pid];
+        delete event.successCallback;
+
+        return true;
+    }
+
+    public issueCommand(event: MCEvent): boolean {
+        const { payload: { pid, command }, successCallback }: MCEvent = event;
+
+        if (typeof Number(pid) !== 'number' || !command) {
+            return false;
+        }
+
+        // TODO: sanitize command
+        const child = this.activeServers[pid];
+        child.stdin.write(`${command}\n`);
+
+        if (command === 'stop') {
+            delete this.activeServers[pid];
+        }
+
+        if (successCallback) {
+            successCallback({ message: `Command '${command}' issued successfully.`, pid, event });
+            delete event.successCallback;
+        }
+
         return true;
     }
 
