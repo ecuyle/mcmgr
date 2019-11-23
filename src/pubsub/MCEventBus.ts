@@ -10,7 +10,7 @@ export class MCEventBus implements MCEventBusInterface {
 
     public publish(event: MCEvent): void {
         const { topic }: MCEvent = event;
-        const subscribers: Subscribers = this.subscriptionsContainer[topic];
+        const subscribers: Subscribers = this.subscriptionsContainer[topic] || [];
         subscribers.forEach(subscriber => {
             subscriber(event);
         });

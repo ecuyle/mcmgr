@@ -10,13 +10,14 @@ import { MCUsersManager } from './MCUsersManager';
 import { sendErrorResponse, sendSuccessResponse, copy } from './utils';
 import { MCEventBus } from './pubsub/MCEventBus';
 import { MCEventBusInterface, MCEvent, Topic } from '../types/MCEventBus';
-import e = require('express');
 
 const logger: Logger = pino();
 
 const dataDirPath = `${__dirname}/../../data`;
 const eventBus: MCEventBusInterface = new MCEventBus();
 const MCFM: MCFMInterface = new MCFileManager(dataDirPath, eventBus);
+const MCSM: MCSMInterface = new MCServersManager(MCFM, eventBus);
+const MCUM: MCUMInterface = new MCUsersManager(MCFM);
 
 export function publishEvent(req: Request, res: Response): void {
     const targetTopic: Topic | null = eventBus.getTopic(req.body.topic);
@@ -35,32 +36,16 @@ export function publishEvent(req: Request, res: Response): void {
     const payload = copy(req.body, true);
 
     const event: MCEvent = eventBus.createEvent(targetTopic, payload);
-
-    const successCallback = (msg) => {
-        sendSuccessResponse({
-            req,
-            res,
-            methodSrc: 'POST /api/events ./publishEvent',
-            statusCode: 201,
-            msg,
-            logger,
-        });
-    };
-
-    const failureCallback = (e: Error) => {
-        sendErrorResponse({
-            req,
-            res,
-            methodSrc: 'POST /api/events .publishEvent',
-            statusCode: 400,
-            e,
-            logger,
-        });
-    };
-
-    payload.successCallback = successCallback;
-    payload.failureCallback = failureCallback;
     eventBus.publish(event);
+
+    sendSuccessResponse({
+        req,
+        res,
+        methodSrc: 'POST /api/events ./publishEvent',
+        statusCode: 201,
+        msg: event,
+        logger,
+    });
 }
 
 export function getUserById(req: Request, res: Response): void {
@@ -107,11 +92,10 @@ export function getUserById(req: Request, res: Response): void {
 };
 
 export async function createUser(req: Request, res: Response): Promise<void> {
-    const mcum: MCUMInterface = new MCUsersManager(MCFM);
     const { username, hash }: CreateUserInterface = req.body;
 
     try {
-        const user: UserSchemaObject = await mcum.createUser(username, hash);
+        const user: UserSchemaObject = await MCUM.createUser(username, hash);
         sendSuccessResponse({
             req,
             res,
@@ -170,7 +154,6 @@ export function getServersByUserId(req: Request, res: Response): void {
 }
 
 export async function createServer(req: Request, res: Response): Promise<void> {
-    const mcsm: MCSMInterface = new MCServersManager(MCFM);
     const {
         userId,
         name,
@@ -187,7 +170,7 @@ export async function createServer(req: Request, res: Response): Promise<void> {
             throw new Error(`The following query params are required: 'userId', 'name', 'runtime', 'isEulaAccepted'`);
         }
 
-        const serverId: number = await mcsm.createServer(name, runtime, isEulaAccepted, userId, config);
+        const serverId: number = await MCSM.createServer(name, runtime, isEulaAccepted, userId, config);
         sendSuccessResponse({
             req,
             res,
