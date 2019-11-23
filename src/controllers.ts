@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { MCServersManager } from './MCServersManager';
-import { MCSMInterface, CreateServerInterface } from '../types/MCServersManager';
+import { MCSMInterface, CreateServerInterface, ServerDetails } from '../types/MCServersManager';
 import { MCFileManager } from './MCFileManager';
 import { MCFMInterface, UserSchemaObject, ServerSchemaObject, EntityFile } from '../types/MCFileManager';
 import pino = require('pino');
@@ -123,6 +123,36 @@ export async function createUser(req: Request, res: Response): Promise<void> {
             req,
             res,
             methodSrc: 'POST /api/mcusr .createUser',
+            statusCode: 400,
+            e,
+            logger,
+        });
+    }
+}
+
+export function getServerDetails(req: Request, res: Response): void {
+    try {
+        const { query: { serverId } }: Request = req;
+
+        if (typeof parseInt(serverId) !== 'number') {
+            throw new Error(`Query Param 'serverId' is required`);
+        }
+
+        const serverDetails: ServerDetails = MCSM.getServerDetails(Number(serverId));
+
+        sendSuccessResponse({
+            req,
+            res,
+            methodSrc: 'GET /api/mcsrv/detail .getServerDetails',
+            statusCode: 200,
+            msg: serverDetails,
+            logger,
+        });
+    } catch(e) {
+        sendErrorResponse({
+            req,
+            res,
+            methodSrc: 'GET /api/mcsrv/detail .getServerDetails',
             statusCode: 400,
             e,
             logger,

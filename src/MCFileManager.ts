@@ -24,6 +24,10 @@ export class MCFileManager implements MCFMInterface {
         this._retrieveAndSetEntities();
     }
 
+    public getFileContents(path: string): string {
+        return readFileSync(path).toString();
+    }
+
     public getAll<T>(entity: string): EntityFile<T> {
         try {
             const entityPath: string | void = this._getPathForEntity(entity);
