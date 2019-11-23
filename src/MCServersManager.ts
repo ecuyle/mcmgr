@@ -15,6 +15,8 @@ import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
 import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
 import * as path from 'path';
+import { MCEventBusInterface, MCEvent } from '../types/MCEventBus';
+import { topics } from './pubsub/topics';
 
 export class MCServersManager implements MCSMInterface {
     public static BASE_PATH: string = path.join(__dirname, '..', '..', 'data');
@@ -22,31 +24,23 @@ export class MCServersManager implements MCSMInterface {
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager();
 
-    public serverId: number;
-    public name: string;
-    public runtime: string;
-    public config: ServerConfig;
-    public isEulaAccepted: boolean;
-    public serverDirPath: string;
-    public userId: number;
     public mcfm: MCFMInterface;
+    public eventBus: MCEventBusInterface;
 
-    public constructor(mcfm: MCFMInterface, serverId?: number) {
-        this.serverId = serverId;
+    public constructor(mcfm: MCFMInterface, eventBus: MCEventBusInterface) {
         this.mcfm = mcfm;
-        this.config = {};
-        this.isEulaAccepted = false;
-        this.serverDirPath = '';
+        this.eventBus = eventBus;
 
-        this._setServerPropsIfExists();
+        eventBus.subscribe(topics.SERVER_START, this.startServer.bind(this));
+    }
+
+    public startServer(event: MCEvent): boolean {
+        console.log(event);
+        return true;
     }
 
     public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, userId: number, config: ServerConfig = {}): Promise<number> {
         try {
-            if (this.serverId) {
-                throw new Error('FATAL INTERNAL :: createServer :: Server Id already exists on this manager. Cannot create new server with this manager');
-            }
-
             if (!name) {
                 throw new Error('FATAL EXTERNAL :: createServer :: User must provide server name');
             }
@@ -64,38 +58,31 @@ export class MCServersManager implements MCSMInterface {
             }
 
             const uniquePathName = generateUniqueId();
+            const serverDirPath = `${MCServersManager.BASE_PATH}/${uniquePathName}`;
 
-            this.name = name;
-            this.runtime = runtime;
-            this.config = config;
-            this.isEulaAccepted = isEulaAccepted;
-            this.serverDirPath = `${MCServersManager.BASE_PATH}/${uniquePathName}`;
+            mkdir(serverDirPath);
+            await this._downloadServerRuntime(serverDirPath, runtime);
+            this._copyTemplatesIntoServerDirWithData(serverDirPath, isEulaAccepted, config);
 
-            mkdir(this.serverDirPath);
-            await this._downloadServerRuntime();
-            this._copyTemplatesIntoServerDirWithData();
-
-            console.log(userId);
             const newServer: ServerSchemaObject = {
                 fk_users_id: userId,
-                name: name,
-                runtime: runtime,
-                path: this.serverDirPath,
+                name,
+                runtime,
+                path: serverDirPath,
             };
 
             const server: ServerSchemaObject = this.mcfm.updateOrAdd<ServerSchemaObject>('servers', newServer);
-            this.serverId = server.id;
 
-            return this.serverId;
+            return server.id;
         } catch (e) {
             return e;
         }
     }
 
-    private _createEulaWithUserInput(): void {
+    private _createEulaWithUserInput(serverDirPath: string, isEulaAccepted: boolean): void {
         const eulaFile: Array<string> = copy(DEFAULT_EULA_ROWS);
-        const eulaAcceptanceString: string = `eula=${this.isEulaAccepted}`;
-        const eulaDest: string = `${this.serverDirPath}/${MCServersManager.EULA_FILENAME}`;
+        const eulaAcceptanceString: string = `eula=${isEulaAccepted}`;
+        const eulaDest: string = `${serverDirPath}/${MCServersManager.EULA_FILENAME}`;
 
         eulaFile[1] = `#${moment().format('LLLL')}`;
         eulaFile[2] = eulaAcceptanceString;
@@ -105,9 +92,9 @@ export class MCServersManager implements MCSMInterface {
         return;
     }
 
-    private async _createServerPropertiesWithConfig(): Promise<void> {
+    private async _createServerPropertiesWithConfig(serverDirPath: string, config: ServerConfig): Promise<void> {
         const defaultsCopy: ServerConfig = copy(DEFAULT_SERVER_PROPERTIES);
-        this._updateDefaultServerPropertiesWithConfig(defaultsCopy);
+        this._updateDefaultServerPropertiesWithConfig(defaultsCopy, config);
 
         const defaultsCopyArray: Array<string> = ['#Minecraft server properties', `#${moment().format('LLLL')}`];
         Object.keys(defaultsCopy).forEach((key: string) => {
@@ -115,49 +102,29 @@ export class MCServersManager implements MCSMInterface {
         });
 
         const data: Uint8Array = new Uint8Array(Buffer.from(defaultsCopyArray.join('\n')));
-        const serverDest: string = `${this.serverDirPath}/${MCServersManager.SERVER_PROPERTIES_FILENAME}`;
+        const serverDest: string = `${serverDirPath}/${MCServersManager.SERVER_PROPERTIES_FILENAME}`;
 
         writeFileSync(serverDest, data);
 
         return;
     }
 
-    private _updateDefaultServerPropertiesWithConfig(defaultsCopy: ServerConfig): void {
-        Object.keys(this.config).forEach((property: string) => {
+    private _updateDefaultServerPropertiesWithConfig(defaultsCopy: ServerConfig, config: ServerConfig): void {
+        Object.keys(config).forEach((property: string) => {
             if (defaultsCopy[property]) {
-                defaultsCopy[property] = this.config[property];
+                defaultsCopy[property] = config[property];
             }
         });
     }
 
-    private _setServerPropsIfExists(): void {
-        const { serverId } = this;
-
-        if (serverId === undefined) {
-            return;
-        }
-
-        const serverData: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
-
-        if (!serverData) {
-            throw new Error(`FATAL :: _setServerPropsIfExsts :: Server Id ${serverId} was not found`);
-        }
-
-        this.name = serverData.name;
-        this.runtime = serverData.runtime;
-        this.serverDirPath = serverData.path;
-
-        // TODO: get config from file
+    private _copyTemplatesIntoServerDirWithData(serverDirPath: string, isEulaAccepted: boolean, config: ServerConfig): void {
+        this._createEulaWithUserInput(serverDirPath, isEulaAccepted);
+        this._createServerPropertiesWithConfig(serverDirPath, config);
     }
 
-    private _copyTemplatesIntoServerDirWithData(): void {
-        this._createEulaWithUserInput();
-        this._createServerPropertiesWithConfig();
-    }
-
-    private async _downloadServerRuntime(): Promise<boolean> {
+    private async _downloadServerRuntime(serverDirPath: string, runtime: string): Promise<boolean> {
         try {
-            const url: string = await this._getServerRuntimeUrl();
+            const url: string = await this._getServerRuntimeUrl(runtime);
 
             const { data }: AxiosResponse = await axios({
                 method: 'GET',
@@ -165,7 +132,7 @@ export class MCServersManager implements MCSMInterface {
                 responseType: 'stream',
             });
 
-            const runtimeJarStream: WriteStream = createWriteStream(`${this.serverDirPath}/minecraft-server-${this.runtime}.jar`);
+            const runtimeJarStream: WriteStream = createWriteStream(`${serverDirPath}/minecraft-server-${runtime}.jar`);
             data.pipe(runtimeJarStream);
 
             return true;
@@ -174,9 +141,9 @@ export class MCServersManager implements MCSMInterface {
         }
     }
 
-    async _getServerRuntimeUrl(): Promise<string> {
+    private async _getServerRuntimeUrl(runtime: string): Promise<string> {
         try {
-            const { downloads }: VersionManifest = await MCServersManager.MCVM.getVersionManifest(this.runtime);
+            const { downloads }: VersionManifest = await MCServersManager.MCVM.getVersionManifest(runtime);
             if (downloads && downloads.server) {
                 const { url }: VersionDownloadDetails = downloads.server;
                 return url;

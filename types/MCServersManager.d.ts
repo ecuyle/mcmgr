@@ -1,15 +1,10 @@
 import { MCFMInterface } from '../types/MCFileManager';
+import { MCEventBusInterface } from './MCEventBus';
 
 export interface MCSMInterface {
     createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<number>;
-    serverId?: number;
-    name: string;
-    runtime: string;
-    config: ServerConfig;
-    isEulaAccepted: boolean;
-    serverDirPath: string;
-    userId: number;
     mcfm: MCFMInterface;
+    eventBus: MCEventBusInterface;
 }
 
 export interface CreateServerInterface {
