@@ -19,6 +19,7 @@
     "moment": "^2.24.0",
     "path": "^0.12.7",
     "pino": "^5.13.5",
+    "shell-escape-tag": "^2.0.2",
     "shelljs": "^0.8.3"
   },
   "devDependencies": {

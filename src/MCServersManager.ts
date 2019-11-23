@@ -6,6 +6,7 @@ import {
 } from 'fs';
 import axios, { AxiosResponse } from 'axios';
 import { mkdir, exec, cd } from 'shelljs';
+import shell from 'shell-escape-tag';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
 import { copy, generateUniqueId } from './utils.js';
@@ -59,11 +60,10 @@ export class MCServersManager implements MCSMInterface {
             return !!file.match(new RegExp(`${runtime}.jar$`));
         });
 
-        // TODO: sanitize jarfile and path
         cd(path);
-        const child: ChildProcess = exec(`java -Xmx1G -Xmx1G -jar ${path}/${jarfile} nogui`, { async: true });
+        const startServerCommand = shell`java -Xmx1G -Xmx1G -jar ${path}/${jarfile} nogui`;
+        const child: ChildProcess = exec(startServerCommand, { async: true });
         const { pid }: ChildProcess = child;
-        cd('..');
 
         child.stdout.on('data', data => {
             console.log(data);
@@ -106,16 +106,16 @@ export class MCServersManager implements MCSMInterface {
             return false;
         }
 
-        // TODO: sanitize command
         const child = this.activeServers[pid];
-        child.stdin.write(`${command}\n`);
+        const escapedCommand: string = shell.escape(command);
+        child.stdin.write(`${escapedCommand}\n`);
 
-        if (command === 'stop') {
+        if (escapedCommand === 'stop') {
             delete this.activeServers[pid];
         }
 
         if (successCallback) {
-            successCallback({ message: `Command '${command}' issued successfully.`, pid, event });
+            successCallback({ message: `Command '${escapedCommand}' issued successfully.`, pid, event });
             delete event.successCallback;
         }
 
