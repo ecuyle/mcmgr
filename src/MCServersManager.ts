@@ -42,15 +42,19 @@ export class MCServersManager implements MCSMInterface {
     }
 
     public startServer(event: MCEvent): boolean {
-        const { payload: { serverId }, successCallback }: MCEvent = event;
+        const { payload: { serverId }, successCallback, errorCallback }: MCEvent = event;
 
         if (typeof Number(serverId) !== 'number') {
+            errorCallback(new Error(`Start server request failed due to invalid serverId '${serverId}'`));
+            delete event.errorCallback;
             return false;
         }
 
         const server: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
 
         if (!server) {
+            errorCallback(new Error(`Start server request failed due to server not found with serverId '${serverId}'`));
+            delete event.errorCallback;
             return false;
         }
 
@@ -85,24 +89,29 @@ export class MCServersManager implements MCSMInterface {
     }
 
     public stopServer(event: MCEvent): boolean {
-        const { payload: { pid }, successCallback }: MCEvent = event;
+        const { payload: { pid }, successCallback, errorCallback }: MCEvent = event;
 
         if (typeof Number(pid) !== 'number') {
+            errorCallback(new Error(`Stop server request failed due to invalid pid '${pid}'`));
+            delete event.errorCallback;
             return false;
         }
 
-        const stopServerEvent: MCEvent = this.eventBus.createEvent(topics.ISSUE_COMMAND, { command: 'stop', pid }, successCallback);
+        const stopServerEvent: MCEvent = this.eventBus.createEvent(topics.ISSUE_COMMAND, { command: 'stop', pid }, successCallback, errorCallback);
         this.eventBus.publish(stopServerEvent);
         delete this.activeServers[pid];
         delete event.successCallback;
+        delete event.errorCallback;
 
         return true;
     }
 
     public issueCommand(event: MCEvent): boolean {
-        const { payload: { pid, command }, successCallback }: MCEvent = event;
+        const { payload: { pid, command }, successCallback, errorCallback }: MCEvent = event;
 
         if (typeof Number(pid) !== 'number' || !command) {
+            errorCallback(new Error(`Issue command request failed due to invalid pid (${pid}) or command (${command})`));
+            delete event.errorCallback;
             return false;
         }
 
