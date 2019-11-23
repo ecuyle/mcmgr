@@ -1,10 +1,17 @@
 import { MCFMInterface } from '../types/MCFileManager';
-import { MCEventBusInterface } from './MCEventBus';
+import { MCEventBusInterface, MCEvent } from './MCEventBus';
+import { ChildProcess } from 'child_process';
+
 
 export interface MCSMInterface {
-    createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<number>;
     mcfm: MCFMInterface;
     eventBus: MCEventBusInterface;
+    activeServers: ServersList;
+
+    createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<number>;
+    startServer(event: MCEvent): boolean;
+    stopServer(event: MCEvent): boolean;
+    issueCommand(event: MCEvent): boolean;
 }
 
 export interface CreateServerInterface {
@@ -14,6 +21,8 @@ export interface CreateServerInterface {
     isEulaAccepted: boolean;
     config: ServerConfig;
 }
+
+export type ServersList = Record<number, ChildProcess>;
 
 export interface ServerConfig {
     "spawn-protection"?: number;

@@ -35,17 +35,31 @@ export function publishEvent(req: Request, res: Response): void {
 
     const payload = copy(req.body, true);
 
-    const event: MCEvent = eventBus.createEvent(targetTopic, payload);
-    eventBus.publish(event);
 
-    sendSuccessResponse({
-        req,
-        res,
-        methodSrc: 'POST /api/events ./publishEvent',
-        statusCode: 201,
-        msg: event,
-        logger,
-    });
+    const successCallback = msg => {
+        sendSuccessResponse({
+            req,
+            res,
+            methodSrc: 'POST /api/events ./publishEvent',
+            statusCode: 201,
+            msg,
+            logger,
+        });
+    };
+
+    const errorCallback = e => {
+        sendErrorResponse({
+            req,
+            res,
+            methodSrc: 'POST /api/events .publishEvent',
+            statusCode: 400,
+            e,
+            logger,
+        });
+    };
+
+    const event: MCEvent = eventBus.createEvent(targetTopic, payload, successCallback, errorCallback);
+    eventBus.publish(event);
 }
 
 export function getUserById(req: Request, res: Response): void {
