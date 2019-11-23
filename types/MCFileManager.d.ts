@@ -2,6 +2,7 @@ export interface MCFMInterface {
     rootDataPath: string;
     entities: EntitiesDictionary;
 
+    getFileContents(path: string): string;
     getAll<T>(entity: string): EntityFile<T>;
     getOneById<T>(entity: string, id: number): T | void;
     updateOrAdd<T extends BaseSchemaObject>(target: string, newEntity: T): T;

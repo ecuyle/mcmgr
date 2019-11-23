@@ -6,12 +6,12 @@ import {
 } from 'fs';
 import axios, { AxiosResponse } from 'axios';
 import { mkdir, exec, cd } from 'shelljs';
-import shell from 'shell-escape-tag';
+import * as shell from 'shell-escape-tag';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
 import { copy, generateUniqueId } from './utils.js';
 import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
-import { MCSMInterface, ServerConfig, ServersList } from '../types/MCServersManager';
+import { MCSMInterface, ServerConfig, ServersList, ServerDetails } from '../types/MCServersManager';
 import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
 import { VersionDownloadDetails } from '../types/Common';
 import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
@@ -27,24 +27,54 @@ export class MCServersManager implements MCSMInterface {
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager();
 
+    private _eventBus: MCEventBusInterface;
+
     public mcfm: MCFMInterface;
-    public eventBus: MCEventBusInterface;
     public activeServers: ServersList;
 
     public constructor(mcfm: MCFMInterface, eventBus: MCEventBusInterface) {
         this.mcfm = mcfm;
-        this.eventBus = eventBus;
+        this._eventBus = eventBus;
         this.activeServers = {};
 
-        eventBus.subscribe(topics.SERVER_START, this.startServer.bind(this));
-        eventBus.subscribe(topics.SERVER_STOP, this.stopServer.bind(this));
-        eventBus.subscribe(topics.ISSUE_COMMAND, this.issueCommand.bind(this));
+        this._eventBus.subscribe(topics.SERVER_START, this.startServer.bind(this));
+        this._eventBus.subscribe(topics.SERVER_STOP, this.stopServer.bind(this));
+        this._eventBus.subscribe(topics.ISSUE_COMMAND, this.issueCommand.bind(this));
+    }
+
+    public getServerDetails(serverId: number): ServerDetails {
+        try {
+            const server: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
+
+            if (!server) {
+                throw new Error(`Server with serverId ${serverId} does not exist.`);
+            }
+
+            const {
+                id,
+                path,
+                runtime,
+                name,
+            }: ServerSchemaObject = server;
+
+            return {
+                config: this._getServerProps(path),
+                isEulaAccepted: this._getEulaAcceptanceStatus(path),
+                id,
+                path,
+                runtime,
+                name,
+            };
+
+        } catch(e) {
+            return e;
+        }
     }
 
     public startServer(event: MCEvent): boolean {
         const { payload: { serverId }, successCallback, errorCallback }: MCEvent = event;
 
-        if (typeof Number(serverId) !== 'number') {
+        if (typeof parseInt(serverId) !== 'number') {
             errorCallback(new Error(`Start server request failed due to invalid serverId '${serverId}'`));
             delete event.errorCallback;
             return false;
@@ -74,8 +104,8 @@ export class MCServersManager implements MCSMInterface {
         });
 
         if (this.activeServers[pid]) {
-            const stopServerEvent: MCEvent = this.eventBus.createEvent(topics.SERVER_STOP, { pid });
-            this.eventBus.publish(stopServerEvent);
+            const stopServerEvent: MCEvent = this._eventBus.createEvent(topics.SERVER_STOP, { pid });
+            this._eventBus.publish(stopServerEvent);
         }
 
         this.activeServers[pid] = child;
@@ -91,14 +121,14 @@ export class MCServersManager implements MCSMInterface {
     public stopServer(event: MCEvent): boolean {
         const { payload: { pid }, successCallback, errorCallback }: MCEvent = event;
 
-        if (typeof Number(pid) !== 'number') {
+        if (typeof parseInt(pid) !== 'number') {
             errorCallback(new Error(`Stop server request failed due to invalid pid '${pid}'`));
             delete event.errorCallback;
             return false;
         }
 
-        const stopServerEvent: MCEvent = this.eventBus.createEvent(topics.ISSUE_COMMAND, { command: 'stop', pid }, successCallback, errorCallback);
-        this.eventBus.publish(stopServerEvent);
+        const stopServerEvent: MCEvent = this._eventBus.createEvent(topics.ISSUE_COMMAND, { command: 'stop', pid }, successCallback, errorCallback);
+        this._eventBus.publish(stopServerEvent);
         delete this.activeServers[pid];
         delete event.successCallback;
         delete event.errorCallback;
@@ -109,7 +139,7 @@ export class MCServersManager implements MCSMInterface {
     public issueCommand(event: MCEvent): boolean {
         const { payload: { pid, command }, successCallback, errorCallback }: MCEvent = event;
 
-        if (typeof Number(pid) !== 'number' || !command) {
+        if (typeof parseInt(pid) !== 'number' || !command) {
             errorCallback(new Error(`Issue command request failed due to invalid pid (${pid}) or command (${command})`));
             delete event.errorCallback;
             return false;
@@ -169,6 +199,36 @@ export class MCServersManager implements MCSMInterface {
         } catch (e) {
             return e;
         }
+    }
+
+    private _getEulaAcceptanceStatus(serverDirPath: string): boolean {
+        const eulaFilePath: string = `${serverDirPath}/${MCServersManager.EULA_FILENAME}`;
+        return this.mcfm
+            .getFileContents(eulaFilePath)
+            .includes('true');
+    }
+
+    private _getServerProps(serverDirPath: string): ServerConfig {
+        try {
+            const serverPropsFilePath = `${serverDirPath}/${MCServersManager.SERVER_PROPERTIES_FILENAME}`;
+            const configContents = this.mcfm.getFileContents(serverPropsFilePath);
+            return this._parseServerProps(configContents);
+        } catch(e) {
+            return e;
+        }
+    }
+
+    private _parseServerProps(configContents: string): ServerConfig {
+        return configContents
+            .split('\n')
+            .reduce((acc, curr) => {
+                if (curr[0] !== '#') {
+                    const [key, value] = curr.split('=');
+                    acc[key] = value;
+                }
+
+                return acc;
+            }, {});
     }
 
     private _createEulaWithUserInput(serverDirPath: string, isEulaAccepted: boolean): void {

@@ -3,12 +3,13 @@ import bodyParser = require('body-parser');
 import pino = require('pino');
 import expressPinoLogger = require('express-pino-logger');
 
-import { 
+import {
     getUserById,
     getServersByUserId,
     createServer,
     createUser,
     publishEvent,
+    getServerDetails
 } from './controllers';
 
 import { Application } from 'express';
@@ -26,6 +27,8 @@ app.post('/api/mcusr', createUser);
 
 app.get('/api/mcsrv', getServersByUserId);
 app.post('/api/mcsrv', createServer);
+
+app.get('/api/mcsrv/detail', getServerDetails);
 
 app.post('/api/events', publishEvent);
 
