@@ -9,7 +9,8 @@ import {
     createServer,
     createUser,
     publishEvent,
-    getServerDetails
+    getServerDetails,
+    updateServerConfig,
 } from './controllers';
 
 import { Application } from 'express';
@@ -27,6 +28,7 @@ app.post('/api/mcusr', createUser);
 
 app.get('/api/mcsrv', getServersByUserId);
 app.post('/api/mcsrv', createServer);
+app.put('/api/mcsrv', updateServerConfig);
 
 app.get('/api/mcsrv/detail', getServerDetails);
 

@@ -161,6 +161,17 @@ export class MCServersManager implements MCSMInterface {
         return true;
     }
 
+    public async updateServerConfig(serverId: number, newConfig: ServerConfig): Promise<ServerConfig> {
+        // TODO: add prop validation on server config (ie. if someone sends a difficulty of "uber hard", do we throw an unsupported error?)
+        const nullServerHandler = () => {
+            throw new Error(`FATAL INTERNAL :: MCSM._getServerFromId :: serverId '${serverId}' is invalid`);
+        };
+        const { path: serverDirPath }: ServerSchemaObject = this._getServerFromId(serverId, nullServerHandler);
+        await this._createServerPropertiesWithConfig(serverDirPath, newConfig);
+
+        return newConfig;
+    }
+
     public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, userId: number, config: ServerConfig = {}): Promise<number> {
         try {
             if (!name) {
@@ -197,6 +208,20 @@ export class MCServersManager implements MCSMInterface {
 
             return server.id;
         } catch (e) {
+            return e;
+        }
+    }
+
+    private _getServerFromId(serverId: number, nullServerHandler: Function): ServerSchemaObject {
+        try {
+            const server: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
+
+            if (!server) {
+                return nullServerHandler();
+            }
+
+            return server;
+        } catch(e) {
             return e;
         }
     }
