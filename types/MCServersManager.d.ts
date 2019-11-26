@@ -7,6 +7,7 @@ export interface MCSMInterface {
     activeServers: ServersList;
 
     getServerDetails(serverId: number): ServerDetails;
+    updateServerConfig(serverId: number, newConfig: ServerConfig): Promise<ServerConfig>;
     createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<number>;
     startServer(event: MCEvent): boolean;
     stopServer(event: MCEvent): boolean;

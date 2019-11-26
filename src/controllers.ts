@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { MCServersManager } from './MCServersManager';
-import { MCSMInterface, CreateServerInterface, ServerDetails } from '../types/MCServersManager';
+import { MCSMInterface, CreateServerInterface, ServerDetails, ServerConfig } from '../types/MCServersManager';
 import { MCFileManager } from './MCFileManager';
 import { MCFMInterface, UserSchemaObject, ServerSchemaObject, EntityFile } from '../types/MCFileManager';
 import pino = require('pino');
@@ -228,6 +228,41 @@ export async function createServer(req: Request, res: Response): Promise<void> {
             req,
             res,
             methodSrc: 'POST /api/mcsrv .createServer',
+            statusCode: 400,
+            e,
+            logger,
+        });
+    }
+}
+
+export async function updateServerConfig(req: Request, res: Response): Promise<void> {
+    const {
+        body: {
+            serverId,
+            config,
+        }
+    }: Request = req;
+
+    try {
+        if (typeof parseInt(serverId) !== 'number' || !config) {
+            throw new Error(`The following query params are required: 'serverId', 'config'`);
+        }
+
+        const result: ServerConfig = await MCSM.updateServerConfig(serverId, config);
+
+        sendSuccessResponse({
+            req,
+            res,
+            methodSrc: 'PUT /api/mcsrv .updateServerConfig',
+            statusCode: 201,
+            msg: result,
+            logger,
+        });
+    } catch(e) {
+        sendErrorResponse({
+            req,
+            res,
+            methodSrc: 'PUT /api/mcsrv .updateServerConfig',
             statusCode: 400,
             e,
             logger,
