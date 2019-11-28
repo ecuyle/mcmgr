@@ -5,6 +5,7 @@
         "target": "es5",
         "module": "CommonJS",
         "moduleResolution": "Node",
+        "strict": true,
     },
     "include": [
         "./src/**/*", "types/*", "test/*"

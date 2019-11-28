@@ -14,7 +14,7 @@ import { MCEventBusInterface } from '../types/MCEventBus';
 
 export class MCFileManager implements MCFMInterface {
     public rootDataPath: string;
-    public entities: EntitiesDictionary;
+    public entities: EntitiesDictionary = {};
 
     private _eventBus: MCEventBusInterface;
 
@@ -60,11 +60,9 @@ export class MCFileManager implements MCFMInterface {
                 throw new Error(`FATAL :: updateOrAdd :: Path for ${target} does not exist`);
             }
 
-            if (!entityFile.dict[newEntity.id]) {
-                if (newEntity.id !== undefined) {
-                    throw new Error('FATAL :: updateOrAdd :: Server Id provided does not exist');
-                }
-
+            if (newEntity.id && !entityFile.dict[newEntity.id]) {
+                throw new Error('FATAL :: updateOrAdd :: Server Id provided does not exist');
+            } else if (newEntity.id === undefined) {
                 entityFile.latestId += 1;
                 newEntity.id = entityFile.latestId;
             }
@@ -130,8 +128,8 @@ export class MCFileManager implements MCFMInterface {
             const paramsDict: ParamsDict = this._createParamsDict(params);
             const results: Array<T> = [];
 
-            Object.keys(dict).forEach(key => {
-                const entity: T = dict[key];
+            Object.keys(dict).forEach((key: string) => {
+                const entity: T = dict[Number(key)];
 
                 if (this._matchEntityWithQueryParams<T>(entity, paramsDict)) {
                     results.push(entity);
@@ -154,12 +152,12 @@ export class MCFileManager implements MCFMInterface {
      * @returns true if all provided query params exist and match within the entity.
      *   Returns false otherwise.
      */
-    private _matchEntityWithQueryParams<T>(entity: T, paramsDict: ParamsDict): boolean {
+    private _matchEntityWithQueryParams<T extends BaseSchemaObject>(entity: T, paramsDict: ParamsDict): boolean {
         const keys: Array<string> = Object.keys(paramsDict);
 
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = paramsDict[key];
+        for (let i: number = 0; i < keys.length; i++) {
+            const key: string = keys[i];
+            const value: string = paramsDict[key];
 
             if (String(entity[key]) !== String(value)) {
                 return false;
@@ -179,11 +177,14 @@ export class MCFileManager implements MCFMInterface {
     private _createParamsDict(params: string): ParamsDict {
         const paramsDict: ParamsDict = {};
         const paramsRegex: RegExp = /([^?=&]+)(=[^&]*)/gm;
-        params.match(paramsRegex)
-            .forEach(param => {
+        const paramsList: Array<string> | null = params.match(paramsRegex)
+
+        if (paramsList) {
+            paramsList.forEach(param => {
                 const [k, v]: Array<string> = param.split('=');
                 paramsDict[k] = v;
             });
+        }
 
         return paramsDict;
     }
@@ -194,14 +195,11 @@ export class MCFileManager implements MCFMInterface {
 
     private _retrieveAndSetEntities(): void {
         const files = readdirSync(this.rootDataPath);
-        const entitiesDict: EntitiesDictionary = {};
 
         files.forEach(file => {
             const entity = file.split('.')[0];
-            entitiesDict[entity] = `${this.rootDataPath}/${file}`;
+            this.entities[entity] = `${this.rootDataPath}/${file}`;
         });
-
-        this.entities = entitiesDict;
     }
 
     public resetEntityFile<T>(target: string, targetPath: string): string {

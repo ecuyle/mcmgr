@@ -22,6 +22,9 @@ export interface CreateServerInterface {
 }
 
 export type ServersList = Record<number, ChildProcess>;
+export type ServerConfigKey = string;
+export type ServerConfigValue = string | number | boolean | undefined;
+export type ServerConfigType = Record<ServerConfigKey, ServerConfigValue>;
 
 export interface ServerDetails {
     config: ServerConfig;
@@ -32,7 +35,7 @@ export interface ServerDetails {
     name: string;
 }
 
-export interface ServerConfig {
+export interface ServerConfig extends ServerConfigType {
     "spawn-protection"?: number;
     "max-tick-time"?: number;
     "query.port"?: number;

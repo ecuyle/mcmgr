@@ -6,7 +6,7 @@ export const copy = function(obj: any, isDeep: boolean = false): any {
             return isDeep ? copy(el, isDeep) : el;
         });
     } else if (typeof obj === 'object' && !!obj) {
-        const clone: object = {};
+        const clone: Record<string, any> = {};
 
         Object.keys(obj).forEach((key: any) => {
             clone[key] = isDeep ? copy(obj[key], isDeep) : obj[key];
