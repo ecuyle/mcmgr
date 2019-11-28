@@ -1,4 +1,4 @@
-import { MCFMInterface } from '../types/MCFileManager';
+import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
 import { MCEventBusInterface, MCEvent } from './MCEventBus';
 import { ChildProcess } from 'child_process';
 
@@ -8,7 +8,7 @@ export interface MCSMInterface {
 
     getServerDetails(serverId: number): ServerDetails;
     updateServerConfig(serverId: number, newConfig: ServerConfig): Promise<ServerConfig>;
-    createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<number>;
+    createServer(name: string, runtime: string, isEulaAccepted: boolean, userId: number, config?: ServerConfig): Promise<ServerSchemaObject>;
     startServer(event: MCEvent): boolean;
     stopServer(event: MCEvent): boolean;
     issueCommand(event: MCEvent): boolean;

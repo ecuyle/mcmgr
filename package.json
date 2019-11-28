@@ -6,8 +6,8 @@
   "scripts": {
     "setup": "./setup.sh",
     "test": "tsc && mocha ./dist/test",
-    "server": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log",
-    "server-dev": "rm -rf ./dist/ && tsc && nodemon --watch 'src/**/*.ts' --ext 'ts js json' --exec 'tsc && node ./dist/src/server.js'"
+    "server": "rm -rf ./dist/ && tsc && node ./dist/src/server/server.js > mcserver.log",
+    "server-dev": "rm -rf ./dist/ && tsc && nodemon --watch 'src/**/*.ts' --ext 'ts js json' --exec 'tsc && node ./dist/src/server/server.js'"
   },
   "author": "Eric Cuyle",
   "license": "ISC",

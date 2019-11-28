@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
-import { MCServersManager } from './MCServersManager';
-import { MCSMInterface, CreateServerInterface, ServerDetails, ServerConfig } from '../types/MCServersManager';
-import { MCFileManager } from './MCFileManager';
-import { MCFMInterface, UserSchemaObject, ServerSchemaObject, EntityFile } from '../types/MCFileManager';
+import { MCServersManager } from './mcmgrs/MCServersManager';
+import { MCSMInterface, CreateServerInterface, ServerDetails, ServerConfig } from '../../types/MCServersManager';
+import { MCFileManager } from './mcmgrs/MCFileManager';
+import { MCFMInterface, UserSchemaObject, ServerSchemaObject, EntityFile } from '../../types/MCFileManager';
 import pino = require('pino');
 import { Logger } from 'pino';
-import { CreateUserInterface, MCUMInterface } from '../types/MCUsersManager';
-import { MCUsersManager } from './MCUsersManager';
-import { sendErrorResponse, sendSuccessResponse, copy } from './utils';
+import { CreateUserInterface, MCUMInterface } from '../../types/MCUsersManager';
+import { MCUsersManager } from './mcmgrs/MCUsersManager';
+import { sendErrorResponse, sendSuccessResponse, copy } from '../utils';
 import { MCEventBus } from './pubsub/MCEventBus';
-import { MCEventBusInterface, MCEvent, Topic } from '../types/MCEventBus';
+import { MCEventBusInterface, MCEvent, Topic } from '../../types/MCEventBus';
 
 const logger: Logger = pino();
 
-const dataDirPath = `${__dirname}/../../data`;
+const dataDirPath = `${__dirname}/../../../data`;
 const eventBus: MCEventBusInterface = new MCEventBus();
 const MCFM: MCFMInterface = new MCFileManager(dataDirPath, eventBus);
 const MCSM: MCSMInterface = new MCServersManager(MCFM, eventBus);
@@ -216,13 +216,13 @@ export async function createServer(req: Request, res: Response): Promise<void> {
             throw new Error(`The following query params are required: 'userId', 'name', 'runtime', 'isEulaAccepted'`);
         }
 
-        const serverId: number = await MCSM.createServer(name, runtime, isEulaAccepted, userId, config);
+        const server: ServerSchemaObject = await MCSM.createServer(name, runtime, isEulaAccepted, userId, config);
         sendSuccessResponse({
             req,
             res,
             methodSrc: 'POST /api/mcsrv .createServer',
             statusCode: 201,
-            msg: serverId,
+            msg: server,
             logger,
         });
     } catch (e) {

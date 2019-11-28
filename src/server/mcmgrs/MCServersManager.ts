@@ -9,20 +9,20 @@ import { mkdir, exec, cd } from 'shelljs';
 import * as shell from 'shell-escape-tag';
 import * as moment from 'moment';
 import { MCVersionsManager } from './MCVersionsManager';
-import { copy, generateUniqueId } from './utils.js';
-import { MCVMInterface, VersionManifest } from '../types/MCVersionsManager';
-import { MCSMInterface, ServerConfig, ServersList, ServerDetails } from '../types/MCServersManager';
-import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
-import { VersionDownloadDetails } from '../types/Common';
-import { DEFAULT_SERVER_PROPERTIES } from '../templates/template.server.properties';
-import { DEFAULT_EULA_ROWS } from '../templates/template.eula';
+import { copy, generateUniqueId, isUndefinedOrNull } from '../../utils.js';
+import { MCVMInterface, VersionManifest } from '../../../types/MCVersionsManager';
+import { MCSMInterface, ServerConfig, ServersList, ServerDetails } from '../../../types/MCServersManager';
+import { MCFMInterface, ServerSchemaObject } from '../../../types/MCFileManager';
+import { VersionDownloadDetails } from '../../../types/Common';
+import { DEFAULT_SERVER_PROPERTIES } from '../../../templates/template.server.properties';
+import { DEFAULT_EULA_ROWS } from '../../../templates/template.eula';
 import * as path from 'path';
-import { MCEventBusInterface, MCEvent } from '../types/MCEventBus';
-import { topics } from './pubsub/topics';
+import { MCEventBusInterface, MCEvent } from '../../../types/MCEventBus';
+import { topics } from '../pubsub/topics';
 import { ChildProcess } from 'child_process';
 
 export class MCServersManager implements MCSMInterface {
-    public static BASE_PATH: string = path.join(__dirname, '..', '..', 'data');
+    public static BASE_PATH: string = path.join(__dirname, '..', '..', '..', '..', 'data');
     public static EULA_FILENAME: string = 'eula.txt';
     public static SERVER_PROPERTIES_FILENAME: string = 'server.properties';
     public static MCVM: MCVMInterface = new MCVersionsManager();
@@ -198,7 +198,7 @@ export class MCServersManager implements MCSMInterface {
         return newConfig;
     }
 
-    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, userId: number, config: ServerConfig = {}): Promise<number> {
+    public async createServer(name: string, runtime: string, isEulaAccepted: boolean = false, userId: number, config: ServerConfig = {}): Promise<ServerSchemaObject> {
         try {
             if (!name) {
                 throw new Error('FATAL EXTERNAL :: createServer :: User must provide server name');
@@ -232,13 +232,13 @@ export class MCServersManager implements MCSMInterface {
 
             const server: ServerSchemaObject = this.mcfm.updateOrAdd<ServerSchemaObject>('servers', newServer);
 
-            if (!server.id) {
+            if (isUndefinedOrNull(server)) {
                 throw new Error(`FATAL INTERNAL :: MCSM.createServer :: Error creating server at ${serverDirPath}`);
             }
 
-            return server.id;
+            return server;
         } catch (e) {
-            return e;
+            throw e;
         }
     }
 
