@@ -11,7 +11,7 @@ export interface MCFMInterface {
     resetEntityFile<T>(target: string, targetPath: string): string;
 }
 
-export interface BaseSchemaObject {
+export interface BaseSchemaObject extends Record<string, any> {
     id?: number;
 }
 

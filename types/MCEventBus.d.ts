@@ -13,9 +13,11 @@ export interface MCEvent {
     topic: Topic,
     payload: any,
     timestamp: number,
-    successCallback?: Function;
-    errorCallback?: Function;
+    successCallback?: Function | null;
+    errorCallback?: Function | null;
 }
+
+export type Topics = Record<string, Topic>
 
 export type SubscriptionsContainer = Record<Topic, Subscribers>;
 export type Topic = string;

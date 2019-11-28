@@ -8,7 +8,7 @@ export class MCUsersManager implements MCUMInterface {
         this.mcfm = mcfm;
     }
 
-    public async createUser(username: string, hash: string): Promise<UserSchemaObject> {
+    public createUser(username: string, hash: string): UserSchemaObject {
         try {
             const user: UserSchemaObject = this.mcfm.updateOrAdd<UserSchemaObject>('users', {
                 username,
@@ -17,7 +17,7 @@ export class MCUsersManager implements MCUMInterface {
 
             return user;
         } catch(e) {
-
+            return e;
         }
     }
 }

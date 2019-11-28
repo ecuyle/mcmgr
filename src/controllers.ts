@@ -31,12 +31,14 @@ export function publishEvent(req: Request, res: Response): void {
             e: new Error(`Topic '${targetTopic}' is invalid.`),
             logger,
         });
+
+        return;
     }
 
     const payload = copy(req.body, true);
 
 
-    const successCallback = msg => {
+    const successCallback = (msg: any) => {
         sendSuccessResponse({
             req,
             res,
@@ -47,7 +49,7 @@ export function publishEvent(req: Request, res: Response): void {
         });
     };
 
-    const errorCallback = e => {
+    const errorCallback = (e: any) => {
         sendErrorResponse({
             req,
             res,
@@ -170,8 +172,8 @@ export function getServersByUserId(req: Request, res: Response): void {
 
         const { dict: servers }: EntityFile<ServerSchemaObject> = MCFM.getAll<ServerSchemaObject>('servers');
         const filteredServers: Array<ServerSchemaObject> = [];
-        Object.keys(servers).forEach(serverId => {
-            const server = servers[serverId];
+        Object.keys(servers).forEach((serverId: string) => {
+            const server = servers[Number(serverId)];
             if (server.fk_users_id === Number(userId)) {
                 filteredServers.push(server);
             }

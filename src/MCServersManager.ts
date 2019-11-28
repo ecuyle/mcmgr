@@ -46,7 +46,7 @@ export class MCServersManager implements MCSMInterface {
         try {
             const server: ServerSchemaObject | void = this.mcfm.getOneById<ServerSchemaObject>('servers', serverId);
 
-            if (!server) {
+            if (!server || server.id === undefined || server.id === null) {
                 throw new Error(`Server with serverId ${serverId} does not exist.`);
             }
 
@@ -74,6 +74,10 @@ export class MCServersManager implements MCSMInterface {
     public startServer(event: MCEvent): boolean {
         const { payload: { serverId }, successCallback, errorCallback }: MCEvent = event;
 
+        if (!successCallback || !errorCallback) {
+            throw new Error('FATAL INTERNAL :: successCallback and errorCallback are required');
+        }
+
         if (typeof parseInt(serverId) !== 'number') {
             errorCallback(new Error(`Start server request failed due to invalid serverId '${serverId}'`));
             delete event.errorCallback;
@@ -90,13 +94,22 @@ export class MCServersManager implements MCSMInterface {
 
         const { path, runtime }: ServerSchemaObject = server;
         const serverFiles: Array<string> = readdirSync(path);
-        const jarfile: string = serverFiles.find(file => {
+        const jarfile: string | undefined = serverFiles.find(file => {
             return !!file.match(new RegExp(`${runtime}.jar$`));
         });
+
+        if (!jarfile) {
+            throw new Error(`FATAL INTERNAL :: MCSM.startServer :: Jarfile for server at ${path} could not be found.`)
+        }
 
         cd(path);
         const startServerCommand = shell`java -Xmx1G -Xmx1G -jar ${path}/${jarfile} nogui`;
         const child: ChildProcess = exec(startServerCommand, { async: true });
+
+        if (!child || !child.stdout) {
+            throw new Error(`Server start failed at path ${path}`);
+        }
+
         const { pid }: ChildProcess = child;
 
         child.stdout.on('data', data => {
@@ -121,6 +134,10 @@ export class MCServersManager implements MCSMInterface {
     public stopServer(event: MCEvent): boolean {
         const { payload: { pid }, successCallback, errorCallback }: MCEvent = event;
 
+        if (!successCallback || !errorCallback) {
+            throw new Error('FATAL INTERNAL :: successCallback and errorCallback are required');
+        }
+
         if (typeof parseInt(pid) !== 'number') {
             errorCallback(new Error(`Stop server request failed due to invalid pid '${pid}'`));
             delete event.errorCallback;
@@ -139,6 +156,10 @@ export class MCServersManager implements MCSMInterface {
     public issueCommand(event: MCEvent): boolean {
         const { payload: { pid, command }, successCallback, errorCallback }: MCEvent = event;
 
+        if (!successCallback || !errorCallback) {
+            throw new Error('FATAL INTERNAL :: successCallback and errorCallback are required');
+        }
+
         if (typeof parseInt(pid) !== 'number' || !command) {
             errorCallback(new Error(`Issue command request failed due to invalid pid (${pid}) or command (${command})`));
             delete event.errorCallback;
@@ -146,6 +167,11 @@ export class MCServersManager implements MCSMInterface {
         }
 
         const child = this.activeServers[pid];
+
+        if (!child || !child.stdin) {
+            throw new Error(`Issue command failed at pid ${pid}`)
+        }
+
         const escapedCommand: string = shell.escape(command);
         child.stdin.write(`${escapedCommand}\n`);
 
@@ -206,6 +232,10 @@ export class MCServersManager implements MCSMInterface {
 
             const server: ServerSchemaObject = this.mcfm.updateOrAdd<ServerSchemaObject>('servers', newServer);
 
+            if (!server.id) {
+                throw new Error(`FATAL INTERNAL :: MCSM.createServer :: Error creating server at ${serverDirPath}`);
+            }
+
             return server.id;
         } catch (e) {
             return e;
@@ -246,7 +276,7 @@ export class MCServersManager implements MCSMInterface {
     private _parseServerProps(configContents: string): ServerConfig {
         return configContents
             .split('\n')
-            .reduce((acc, curr) => {
+            .reduce((acc: ServerConfig, curr: string) => {
                 if (curr[0] !== '#') {
                     const [key, value] = curr.split('=');
                     acc[key] = value;

@@ -27,12 +27,12 @@ export class MCEventBus implements MCEventBusInterface {
         return topic;
     }
 
-    public createEvent(desiredTopic: Topic, payload: any, successCallback: Function = null, errorCallback: Function = null): MCEvent {
+    public createEvent(desiredTopic: Topic, payload: any, successCallback: Function | null = null, errorCallback: Function | null = null): MCEvent {
         const topic: Topic | void = topics[desiredTopic];
         const timestamp: number = Date.now();
 
         if (!topic) {
-            return null;
+            throw new Error(`MCEB.createEvent :: Parameter 'topic' is required`);
         }
 
         return {
