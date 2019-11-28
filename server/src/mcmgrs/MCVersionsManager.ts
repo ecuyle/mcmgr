@@ -5,7 +5,7 @@ import {
     VersionDetails,
     VersionsDict,
     VersionManifest,
-} from '../../../types/MCVersionsManager';
+} from '../../types/MCVersionsManager';
 
 const VERSION_MANIFEST_BASE: string = 'https://launchermeta.mojang.com/mc/game/version_manifest.json';
 

@@ -1,8 +1,33 @@
-node_modules/
-package-lock.json
-mcsrv-test/
-.vscode/
-dist/
-mcserver.log
-/data/
-/data-test/
+# root dirs
+data/
+data-test/
+
+# server dirs
+server/node_modules/
+server/package-lock.json
+server/dist/
+server/mcserver.log
+
+# app dirs
+app/mcmgr/DS_Store
+app/mcmgr/node_modules
+app/mcmgr/dist
+app/mcmgr/package-lock.json
+
+# local env files
+app/mcmgr/env.local
+app/mcmgr/env.*.local
+
+# Log files
+app/mcmgr/npm-debug.log*
+app/mcmgr/yarn-debug.log*
+app/mcmgr/yarn-error.log*
+
+# Editor directories and files
+app/mcmgr/idea
+app/mcmgr/vscode
+app/mcmgr/*.suo
+app/mcmgr/*.ntvs*
+app/mcmgr/*.njsproj
+app/mcmgr/*.sln
+app/mcmgr/*.sw?

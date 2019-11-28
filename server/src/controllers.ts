@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
 import { MCServersManager } from './mcmgrs/MCServersManager';
-import { MCSMInterface, CreateServerInterface, ServerDetails, ServerConfig } from '../../types/MCServersManager';
+import { MCSMInterface, CreateServerInterface, ServerDetails, ServerConfig } from '../types/MCServersManager';
 import { MCFileManager } from './mcmgrs/MCFileManager';
-import { MCFMInterface, UserSchemaObject, ServerSchemaObject, EntityFile } from '../../types/MCFileManager';
+import { MCFMInterface, UserSchemaObject, ServerSchemaObject, EntityFile } from '../types/MCFileManager';
 import pino = require('pino');
 import { Logger } from 'pino';
-import { CreateUserInterface, MCUMInterface } from '../../types/MCUsersManager';
+import { CreateUserInterface, MCUMInterface } from '../types/MCUsersManager';
 import { MCUsersManager } from './mcmgrs/MCUsersManager';
-import { sendErrorResponse, sendSuccessResponse, copy } from '../utils';
+import { sendErrorResponse, sendSuccessResponse, copy } from './utils';
 import { MCEventBus } from './pubsub/MCEventBus';
-import { MCEventBusInterface, MCEvent, Topic } from '../../types/MCEventBus';
+import { MCEventBusInterface, MCEvent, Topic } from '../types/MCEventBus';
 
 const logger: Logger = pino();
 

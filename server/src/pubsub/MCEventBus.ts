@@ -1,4 +1,4 @@
-import { MCEventBusInterface, SubscriptionsContainer, Subscribers, MCEvent, Topic } from "../../../types/MCEventBus";
+import { MCEventBusInterface, SubscriptionsContainer, Subscribers, MCEvent, Topic } from "../../types/MCEventBus";
 import { topics } from "./topics";
 
 export class MCEventBus implements MCEventBusInterface {

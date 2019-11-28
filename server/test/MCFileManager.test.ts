@@ -1,5 +1,5 @@
 import assert = require('assert');
-import { MCFileManager } from '../src/server/mcmgrs/MCFileManager';
+import { MCFileManager } from '../src/mcmgrs/MCFileManager';
 import {
     MCFMInterface,
     ServerSchemaObject,
@@ -7,9 +7,9 @@ import {
     EntityFile,
 } from '../types/MCFileManager';
 import { MCEventBusInterface } from '../types/MCEventBus';
-import { MCEventBus } from '../src/server/pubsub/MCEventBus';
+import { MCEventBus } from '../src/pubsub/MCEventBus';
 
-const dataPath: string = `${__dirname}/../../data-test`;
+const dataPath: string = `${__dirname}/../../../data-test`;
 const eventBus: MCEventBusInterface = new MCEventBus();
 
 export function runMCFileManagerTests() {

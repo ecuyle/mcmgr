@@ -1,5 +1,5 @@
-import { MCFMInterface, UserSchemaObject } from "../../../types/MCFileManager";
-import { MCUMInterface } from "../../../types/MCUsersManager";
+import { MCFMInterface, UserSchemaObject } from "../../types/MCFileManager";
+import { MCUMInterface } from "../../types/MCUsersManager";
 
 export class MCUsersManager implements MCUMInterface {
     public mcfm: MCFMInterface;
