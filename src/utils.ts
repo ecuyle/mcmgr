@@ -1,5 +1,9 @@
 import { SrvSuccessResponse, SrvErrorResponse } from '../types/Common';
 
+export const isUndefinedOrNull: Function = function(obj: any): boolean {
+    return obj === null || obj === undefined;
+};
+
 export const copy = function(obj: any, isDeep: boolean = false): any {
     if (Array.isArray(obj)) {
         return obj.map((el: any) => {

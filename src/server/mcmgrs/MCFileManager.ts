@@ -9,8 +9,8 @@ import {
     EntityFile,
     BaseSchemaObject,
     ParamsDict,
-} from '../types/MCFileManager';
-import { MCEventBusInterface } from '../types/MCEventBus';
+} from '../../../types/MCFileManager';
+import { MCEventBusInterface } from '../../../types/MCEventBus';
 
 export class MCFileManager implements MCFMInterface {
     public rootDataPath: string;

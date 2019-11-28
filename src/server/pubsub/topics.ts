@@ -1,4 +1,4 @@
-import { Topics } from "../../types/MCEventBus";
+import { Topics } from "../../../types/MCEventBus";
 
 export const topics: Topics = {
     SERVER_START: 'SERVER_START',
