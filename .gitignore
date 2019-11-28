@@ -1,8 +1,1 @@
-node_modules/
-package-lock.json
-mcsrv-test/
-.vscode/
-dist/
-mcserver.log
-/data/
-/data-test/
+data-test/
