@@ -31,3 +31,6 @@ app/mcmgr/*.ntvs*
 app/mcmgr/*.njsproj
 app/mcmgr/*.sln
 app/mcmgr/*.sw?
+
+# Secrets
+server/src/config/secrets.ts
