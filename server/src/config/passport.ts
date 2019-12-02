@@ -21,18 +21,22 @@ export const setupPassport: Function = function(passport: any, controller: MCCon
 
     passport.use(
         new LocalStrategy(function(username: string, password: string, done: Function) {
-            const results: Array<UserSchemaObject> = controller.MCFM.query<UserSchemaObject>('users', `username=${username}`);
+            try {
+                const results: Array<UserSchemaObject> = controller.MCFM.query<UserSchemaObject>('users', `username=${username}`);
 
-            if (results && bcrypt.compareSync(password, results[0].hash)) {
-                delete results[0].hash;
-                return done(null, results[0]);
+                if (results && bcrypt.compareSync(password, results[0].hash)) {
+                    delete results[0].hash;
+                    return done(null, results[0]);
+                }
+
+                if (!results) {
+                    return done(null, false, { message: `User with username '${username}' could not be found` });
+                }
+
+                return done(null, false, { message: 'Oops, wrong password' });
+            } catch(e) {
+                return done(e);
             }
-
-            if (!results) {
-                return done(null, false, { message: `User with username '${username}' could not be found` });
-            }
-
-            return done(null, false, { message: 'Oops, wrong password' });
         })
     );
 };
