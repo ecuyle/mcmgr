@@ -29,10 +29,10 @@ export const setupPassport: Function = function(passport: any, controller: MCCon
             }
 
             if (!results) {
-                return done(new Error(`User with username '${username}' could not be found`));
+                return done(null, false, { message: `User with username '${username}' could not be found` });
             }
 
-            return done(new Error('Oops, wrong password'));
+            return done(null, false, { message: 'Oops, wrong password' });
         })
     );
 };
