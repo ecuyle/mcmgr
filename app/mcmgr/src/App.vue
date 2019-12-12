@@ -12,13 +12,16 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Login from './components/Login.vue';
+import Home from './components/Home.vue';
 import axios from 'axios';
 
 @Component({
   components: {
     Login,
+    Home,
   },
 })
+
 export default class App extends Vue {
 }
 </script>
