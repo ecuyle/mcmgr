@@ -11,12 +11,22 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import axios from 'axios';
+import { SharedStateStoreInterface } from '../types/SharedStateStore';
 
 @Component
 export default class Login extends Vue {
+  store: SharedStateStoreInterface;
+
+  constructor() {
+    super();
+    const { $root: { $data: { store } } } = this;
+    this.store = store;
+  }
+
   auth() {
-    const { value: username }: HTMLInputElement = (<HTMLInputElement>document.getElementById('username'));
-    const { value: password }: HTMLInputElement = (<HTMLInputElement>document.getElementById('password'));
+    const { $root: { $data: { sharedState } } } = this;
+    const username: string = (<HTMLInputElement>document.getElementById('username')).value;
+    const password: string = (<HTMLInputElement>document.getElementById('password')).value;
     const credentials = {
       username,
       password,
@@ -24,6 +34,7 @@ export default class Login extends Vue {
 
     axios.post('http://localhost:3000/api/login', credentials, { withCredentials: true })
       .then(res => {
+        this.store.set('auth.userId', res.data.id);
         this.$router.push('/home');
       })
       .catch(e => {
