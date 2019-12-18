@@ -1,9 +1,9 @@
 <template>
   <div class="login">
     <label>Username</label>
-    <input id="username" />
+    <input id="username" v-model="username" />
     <label>Password</label>
-    <input id="password" type="password" />
+    <input id="password" type="password" v-model="password" />
     <button v-on:click="auth">Login</button>
   </div>
 </template>
@@ -16,23 +16,38 @@ import { SharedStateStoreInterface } from '../types/SharedStateStore';
 @Component
 export default class Login extends Vue {
   store: SharedStateStoreInterface;
+  username: string;
+  password: string;
 
   constructor() {
     super();
-    const { $root: { $data: { store } } } = this;
+    const {
+      $root: {
+        $data: { store }
+      }
+    } = this;
     this.store = store;
+    this.username = '';
+    this.password = '';
   }
 
   auth() {
-    const { $root: { $data: { sharedState } } } = this;
-    const username: string = (<HTMLInputElement>document.getElementById('username')).value;
-    const password: string = (<HTMLInputElement>document.getElementById('password')).value;
+    const {
+      $root: {
+        $data: { sharedState }
+      }
+    } = this;
+
+    const { username, password } = this;
     const credentials = {
       username,
-      password,
+      password
     };
 
-    axios.post('http://localhost:3000/api/login', credentials, { withCredentials: true })
+    axios
+      .post('http://localhost:3000/api/login', credentials, {
+        withCredentials: true
+      })
       .then(res => {
         this.store.set('auth.userId', res.data.id);
         this.$router.push('/home');

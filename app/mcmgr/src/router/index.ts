@@ -6,14 +6,14 @@ import Home from '@/components/Home.vue';
 Vue.use(Router);
 
 export default new Router({
-    routes: [
-        {
-            path: '/',
-            component: Login,
-        },
-        {
-            path: '/home',
-            component: Home,
-        },
-    ],
+  routes: [
+    {
+      path: '/',
+      component: Login
+    },
+    {
+      path: '/home',
+      component: Home
+    }
+  ]
 });
