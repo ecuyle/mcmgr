@@ -18,12 +18,10 @@ import axios from 'axios';
 @Component({
   components: {
     Login,
-    Home,
-  },
+    Home
+  }
 })
-
-export default class App extends Vue {
-}
+export default class App extends Vue {}
 </script>
 
 <style>
