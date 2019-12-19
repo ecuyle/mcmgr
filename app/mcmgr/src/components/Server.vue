@@ -24,12 +24,15 @@ import { ServerDetails } from '../../../../types/base';
 
 @Component
 export default class Server extends Vue {
+  //---------------------- PROPS  ----------------------
   @Prop() server: ServerDetails | null;
-  store: SharedStateStoreInterface;
-  pid: number | null;
-  ws: WebSocket;
-  serverLogs: string;
-  newCommand: string;
+
+  //---------------------- DATA ----------------------
+  public store: SharedStateStoreInterface;
+  public pid: number | null;
+  public ws: WebSocket;
+  public serverLogs: string;
+  public newCommand: string;
 
   constructor() {
     super();
@@ -46,7 +49,8 @@ export default class Server extends Vue {
     this.ws = new WebSocket('ws://localhost:3000/api/ws/connect');
   }
 
-  get serverLogsArr(): Array<string> {
+  //---------------------- COMPUTED / WATCHERS ----------------------
+  public get serverLogsArr(): Array<string> {
     return this.serverLogs.split('\n');
   }
 
@@ -56,17 +60,42 @@ export default class Server extends Vue {
     this.pid = null;
   }
 
-  handleNewCommandClick(): void {
-    const issueEvent = {
-      topic: 'ISSUE_COMMAND',
-      command: this.newCommand,
-      pid: this.pid
-    };
-
-    this.ws.send(JSON.stringify(issueEvent));
+  //---------------------- LIFECYCLE METHODS ----------------------
+  public mounted(): void {
+    // Setup the onmessage event handler here instead of in
+    // the constructor so that the values bind propertly...
+    this.ws.onmessage = this.handleWsMessageEvent.bind(this);
   }
 
-  handleStartClick(): void {
+  //---------------------- ACTION HANDLERS ----------------------
+  public handleWsMessageEvent(msg: MessageEvent): void {
+    const { data } = msg;
+    const chunks = data.split(' ');
+
+    // Sets pid if not set yet. This is needed so that the server can be
+    // stopped later on.
+    if (this.pid === null) {
+      this.pid = (chunks[0] === '[init]' && +chunks[chunks.length - 1]) || null;
+    }
+
+    this.serverLogs += `${data}\n`;
+
+    // Scroll to bottom of #server-logs div
+    const serverLogsDiv = document.getElementById('server-logs');
+
+    if (serverLogsDiv) {
+      // TODO: Still doesn't scroll EXACTLY to the bottom..figure out why
+      serverLogsDiv.scrollTop = serverLogsDiv.scrollHeight;
+    }
+  }
+
+  public handleNewCommandClick(): void {
+    const { newCommand, pid } = this;
+
+    this._issueCommand(newCommand, pid);
+  }
+
+  public handleStartClick(): void {
     const { server } = this;
 
     if (!server) {
@@ -79,40 +108,32 @@ export default class Server extends Vue {
       return;
     }
 
-    this.startServer(id);
+    this._startServer(id);
   }
 
-  handleStopClick(): void {
-    this.stopServer(this.pid);
+  public handleStopClick(): void {
+    this._stopServer(this.pid);
   }
 
-  startServer(serverId: number): void {
-    if (isUndefinedOrNull(serverId)) {
+  //---------------------- COMPONENT METHODS ----------------------
+  private _issueCommand(command: string, pid: number | null): void {
+    if (pid === null) {
       return;
     }
 
-    // Setup the onmessage event handler here instead of in
-    // the constructor so that the values bind propertly...
-    this.ws.onmessage = (msg: MessageEvent) => {
-      const { data } = msg;
-      const chunks = data.split(' ');
-
-      // Sets pid if not set yet. This is needed so that the server can be
-      // stopped later on.
-      if (this.pid === null) {
-        this.pid =
-          (chunks[0] === '[init]' && +chunks[chunks.length - 1]) || null;
-      }
-
-      this.serverLogs += `${data}\n`;
-
-      // Scroll to bottom of #server-logs div
-      const serverLogsDiv = document.getElementById('server-logs');
-
-      if (serverLogsDiv) {
-        serverLogsDiv.scrollTop = serverLogsDiv.scrollHeight;
-      }
+    const issueEvent = {
+      topic: 'ISSUE_COMMAND',
+      command,
+      pid
     };
+
+    this.ws.send(JSON.stringify(issueEvent));
+  }
+
+  private _startServer(serverId: number): void {
+    if (isUndefinedOrNull(serverId)) {
+      return;
+    }
 
     const startEvent = {
       serverId,
@@ -122,7 +143,7 @@ export default class Server extends Vue {
     this.ws.send(JSON.stringify(startEvent));
   }
 
-  stopServer(pid: number | null): void {
+  private _stopServer(pid: number | null): void {
     if (pid === null) {
       return;
     }
