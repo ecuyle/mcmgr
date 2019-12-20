@@ -128,6 +128,7 @@ export default class Server extends Vue {
     };
 
     this.ws.send(JSON.stringify(issueEvent));
+    this.newCommand = '';
   }
 
   private _startServer(serverId: number): void {
