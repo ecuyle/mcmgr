@@ -9,18 +9,15 @@ import pino = require('pino');
 import expressPinoLogger = require('express-pino-logger');
 import { setupPassport, isLoggedIn } from './config/passport';
 import { MCController } from './controller';
-import { Application } from 'express';
 import { Logger } from 'pino';
+import { RouterWs } from '../types/Common';
 import { MCEventBusInterface } from '../types/MCEventBus';
 import { MCEventBus } from './pubsub/MCEventBus';
 import { MCControllerInterface } from '../types/MCController';
 import { SECRETS } from './config/secrets';
 import expressWs = require('express-ws');
-import * as ws from 'ws';
 
-interface RouterWs extends express.Router {
-  ws(route: string, ...cb: any[]): RouterWs;
-}
+import authRouter from './routers/auth';
 
 const app = expressWs(express()).app;
 const wsRouter = express.Router() as RouterWs;
@@ -46,17 +43,8 @@ app.use(passport.session());
 app.use(flash());
 app.use(cors({ origin: 'http://localhost:8081', credentials: true }));
 
-// Routes
-// Auth
-app.post('/api/login', passport.authenticate('local'), function(req, res) {
-  console.log('success');
-  res.send(req.user);
-});
-
-app.get('/api/logout', function(req, res) {
-  req.logout();
-  res.send();
-});
+// Routers
+app.use('/api/auth', authRouter);
 
 // MCUser
 app.get('/api/mcusr', mcc.getUserById.bind(mcc));

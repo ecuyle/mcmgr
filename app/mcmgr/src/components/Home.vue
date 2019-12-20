@@ -98,7 +98,7 @@ export default class Home extends Vue {
 
   logout() {
     axios
-      .get('http://localhost:3000/api/logout', { withCredentials: true })
+      .get('http://localhost:3000/api/auth/logout', { withCredentials: true })
       .then(() => {
         this.store.set('auth.userId', null);
         this.$router.push('/');
