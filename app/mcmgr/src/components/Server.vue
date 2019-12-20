@@ -11,6 +11,9 @@
       <span>
         <button class="new-command-btn" @click="handleNewCommandClick">Issue command</button>
       </span>
+      <span>
+        <button class="clear-logs-btn" @click="handleClearLogsClick">Clear Logs</button>
+      </span>
     </div>
   </div>
 </template>
@@ -18,6 +21,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import axios from 'axios';
+import * as moment from 'moment';
 import { SharedStateStoreInterface } from '../types/SharedStateStore';
 import { isUndefinedOrNull } from '../utils';
 import { ServerDetails } from '../../../../types/base';
@@ -68,6 +72,10 @@ export default class Server extends Vue {
   }
 
   //---------------------- ACTION HANDLERS ----------------------
+  public handleClearLogsClick(): void {
+    this._clearLogs();
+  }
+
   public handleWsMessageEvent(msg: MessageEvent): void {
     const { data } = msg;
     const chunks = data.split(' ');
@@ -116,6 +124,12 @@ export default class Server extends Vue {
   }
 
   //---------------------- COMPONENT METHODS ----------------------
+  private _clearLogs(): void {
+    this.serverLogs = `Cleared logs at ${moment().format(
+      'dddd, MMMM Do YYYY, h:mm:ss a'
+    )}\n`;
+  }
+
   private _issueCommand(command: string, pid: number | null): void {
     if (pid === null) {
       return;
@@ -128,6 +142,7 @@ export default class Server extends Vue {
     };
 
     this.ws.send(JSON.stringify(issueEvent));
+    this.newCommand = '';
   }
 
   private _startServer(serverId: number): void {
