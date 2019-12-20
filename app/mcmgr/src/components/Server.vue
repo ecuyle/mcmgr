@@ -21,7 +21,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import axios from 'axios';
-import * as moment from 'moment';
+import moment from 'moment';
 import { SharedStateStoreInterface } from '../types/SharedStateStore';
 import { isUndefinedOrNull } from '../utils';
 import { ServerDetails } from '../../../../types/base';

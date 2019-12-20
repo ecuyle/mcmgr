@@ -45,7 +45,7 @@ export default class Login extends Vue {
     };
 
     axios
-      .post('http://localhost:3000/api/login', credentials, {
+      .post('http://localhost:3000/api/auth/login', credentials, {
         withCredentials: true
       })
       .then(res => {
