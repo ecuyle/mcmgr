@@ -15,24 +15,7 @@
       </ul>
     </div>
     <Server v-bind:server="selectedServer"></Server>
-    <div class="create-server">
-      <h3>Create a New Server</h3>
-      <input
-        id="newServerName"
-        class="create-server-input"
-        placeholder="Enter server name..."
-        v-model="newServerName"
-      />
-      <input
-        id="newServerRuntime"
-        class="runtime-input"
-        placeholder="Enter desired runtime..."
-        v-model="newServerRuntime"
-      />
-      <input id="newServerEula" type="checkbox" class="eula-input" v-model="newServerEula" />
-      <span>Accept EULA?</span>
-      <button v-on:click="handleCreateServerClick" class="create-server-btn">Create New Server</button>
-    </div>
+    <CreateServer v-on:createServer="fetchServers()"></CreateServer>
   </div>
 </template>
 
@@ -41,21 +24,20 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 import router from '../router';
 import axios from 'axios';
 import Server from '@/components/Server.vue';
+import CreateServer from '@/components/CreateServer.vue';
 import { ServerSchemaObject } from '../../../../server/types/MCFileManager';
 import { Dictionary } from 'vue-router/types/router';
 import { SharedStateStoreInterface } from '../types/SharedStateStore';
 
 @Component({
   components: {
-    Server
+    Server,
+    CreateServer
   }
 })
 export default class Home extends Vue {
   servers: Array<ServerSchemaObject>;
   store: SharedStateStoreInterface;
-  newServerName: string;
-  newServerRuntime: string;
-  newServerEula: boolean;
   selectedServer: ServerSchemaObject | null;
 
   constructor() {
@@ -67,9 +49,6 @@ export default class Home extends Vue {
       }
     } = this;
     this.store = store;
-    this.newServerName = '';
-    this.newServerRuntime = '';
-    this.newServerEula = false;
     this.selectedServer = null;
   }
 
@@ -99,50 +78,6 @@ export default class Home extends Vue {
       .catch(err => {
         console.log(err);
       });
-  }
-
-  validateCreateServerFields() {
-    if (!this.newServerEula || !this.newServerName || !this.newServerRuntime) {
-      return false;
-    }
-
-    return true;
-  }
-
-  resetCreateServerFields() {
-    this.newServerName = '';
-    this.newServerRuntime = '';
-    this.newServerEula = false;
-  }
-
-  createServer() {
-    const server = {
-      userId: this.store.get('auth.userId'),
-      name: this.newServerName,
-      runtime: this.newServerRuntime,
-      isEulaAccepted: this.newServerEula,
-      config: {}
-    };
-
-    axios
-      .post('http://localhost:3000/api/mcsrv', server, {
-        withCredentials: true
-      })
-      .then(res => {
-        this.fetchServers();
-        this.resetCreateServerFields();
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
-
-  handleCreateServerClick(e: Event) {
-    if (this.validateCreateServerFields()) {
-      this.createServer();
-    } else {
-      alert('AH! Make sure all the fields are good');
-    }
   }
 
   fetchServers() {
