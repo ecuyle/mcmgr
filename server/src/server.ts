@@ -20,6 +20,7 @@ import expressWs = require('express-ws');
 import authRouter from './routers/auth';
 import createMcusrRouter from './routers/mcusr';
 import createMcsrvRouter from './routers/mcsrv';
+import createEventsRouter from './routers/events';
 
 const app = expressWs(express()).app;
 const wsRouter = express.Router() as RouterWs;
@@ -52,8 +53,8 @@ app.use(cors({ origin: 'http://localhost:8081', credentials: true }));
 app.use('/api/auth', authRouter);
 app.use('/api/mcusr', createMcusrRouter(mcc));
 app.use('/api/mcsrv', createMcsrvRouter(mcc));
+app.use('/api/events', createEventsRouter(mcc));
 
-// TODO: Deprecate this. This was replaced with WS below
 app.post('/api/events', mcc.publishEvent.bind(mcc));
 
 wsRouter.ws('/connect', mcc.connect.bind(mcc));
