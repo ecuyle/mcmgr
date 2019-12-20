@@ -10,7 +10,6 @@ import expressPinoLogger = require('express-pino-logger');
 import { setupPassport, isLoggedIn } from './config/passport';
 import { MCController } from './controller';
 import { Logger } from 'pino';
-import { RouterWs } from '../types/Common';
 import { MCEventBusInterface } from '../types/MCEventBus';
 import { MCEventBus } from './pubsub/MCEventBus';
 import { MCControllerInterface } from '../types/MCController';
@@ -21,9 +20,9 @@ import authRouter from './routers/auth';
 import createMcusrRouter from './routers/mcusr';
 import createMcsrvRouter from './routers/mcsrv';
 import createEventsRouter from './routers/events';
+import createWsRouter from './routers/ws';
 
 const app = expressWs(express()).app;
-const wsRouter = express.Router() as RouterWs;
 
 const logger: Logger = pino();
 const PORT: string = process.env.PORT || '3000';
@@ -54,12 +53,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/mcusr', createMcusrRouter(mcc));
 app.use('/api/mcsrv', createMcsrvRouter(mcc));
 app.use('/api/events', createEventsRouter(mcc));
-
-app.post('/api/events', mcc.publishEvent.bind(mcc));
-
-wsRouter.ws('/connect', mcc.connect.bind(mcc));
-
-app.use('/api/ws', wsRouter);
+app.use('/api/ws', createWsRouter(mcc));
 
 app.listen(PORT, () => {
   logger.info(`Server running on port: ${PORT}`);
