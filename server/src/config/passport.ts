@@ -37,8 +37,6 @@ export const setupPassport: Function = function(
           UserSchemaObject
         >("users", `username=${username}`);
 
-        console.log(results);
-        console.log(username, password);
         if (results && bcrypt.compareSync(password, results[0].hash)) {
           delete results[0].hash;
           return done(null, results[0]);
