@@ -9,10 +9,13 @@ export class MCUsersManager implements MCUMInterface {
         this.mcfm = mcfm;
     }
 
-    public createUser(username: string, rawPassword: string): UserSchemaObject {
+    public createUser(username: string, password: string, isPasswordHashed = false): UserSchemaObject {
         try {
             const salt = bcrypt.genSaltSync(10);
-            const hash = bcrypt.hashSync(rawPassword, salt);
+
+            const hash = isPasswordHashed
+                ? bcrypt.hashSync(password, salt)
+                : password;
             const user: UserSchemaObject = this.mcfm.updateOrAdd<UserSchemaObject>('users', {
                 username,
                 hash,
