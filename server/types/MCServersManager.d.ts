@@ -1,13 +1,7 @@
 import { MCFMInterface, ServerSchemaObject } from '../types/MCFileManager';
 import { MCEventBusInterface, MCEvent } from './MCEventBus';
 import { ChildProcess } from 'child_process';
-import {
-    ServerConfigKey,
-    ServerConfigValue,
-    ServerConfigType,
-    ServerDetails,
-    ServerConfig,
-} from '../../types/base';
+import * as baseTypes from '../../types/base';
 
 export interface MCSMInterface {
     mcfm: MCFMInterface;
@@ -32,8 +26,8 @@ export interface CreateServerInterface {
 export type ServersList = Record<number, ChildProcess>;
 
 // Pass through from base
-export type ServerConfigKey = ServerConfigKey;
-export type ServerConfigValue = ServerConfigValue;
-export type ServerConfigType = ServerConfigType;
-export interface ServerDetails extends ServerDetails {}
-export interface ServerConfig extends ServerConfigType {}
+export type ServerConfigKey = baseTypes.ServerConfigKey;
+export type ServerConfigValue = baseTypes.ServerConfigValue;
+export type ServerConfigType = baseTypes.ServerConfigType;
+export interface ServerDetails extends baseTypes.ServerDetails {}
+export interface ServerConfig extends baseTypes.ServerConfigType {}

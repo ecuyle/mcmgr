@@ -46,7 +46,7 @@ app.use(passport.session());
 app.use(flash());
 
 // TODO: Gotta find a better way to allow origin with credentials...
-app.use(cors({ origin: 'http://localhost:8081', credentials: true }));
+app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
 
 // Routers
 app.use('/api/auth', authRouter);
