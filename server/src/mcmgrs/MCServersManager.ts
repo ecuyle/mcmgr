@@ -443,28 +443,32 @@ export class MCServersManager implements MCSMInterface {
     this._createServerPropertiesWithConfig(serverDirPath, config);
   }
 
-  private async _downloadServerRuntime(
+  private _downloadServerRuntime(
     serverDirPath: string,
     runtime: string
   ): Promise<boolean> {
-    try {
-      const url: string = await this._getServerRuntimeUrl(runtime);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const url: string = await this._getServerRuntimeUrl(runtime);
 
-      const { data }: AxiosResponse = await axios({
-        method: 'GET',
-        url: url,
-        responseType: 'stream'
-      });
+        const { data }: AxiosResponse = await axios({
+          method: 'GET',
+          url: url,
+          responseType: 'stream'
+        });
 
-      const runtimeJarStream: WriteStream = createWriteStream(
-        `${serverDirPath}/minecraft-server-${runtime}.jar`
-      );
-      data.pipe(runtimeJarStream);
+        const runtimeJarStream: WriteStream = createWriteStream(
+          `${serverDirPath}/minecraft-server-${runtime}.jar`
+        );
 
-      return true;
-    } catch (e) {
-      throw new Error(e);
-    }
+        data.pipe(runtimeJarStream);
+        runtimeJarStream.on('finish', () => {
+          resolve(true);
+        });
+      } catch (e) {
+        reject(false);
+      }
+    });
   }
 
   private async _getServerRuntimeUrl(runtime: string): Promise<string> {
