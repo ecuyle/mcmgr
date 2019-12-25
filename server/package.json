@@ -2,12 +2,13 @@
   "name": "mcmgr",
   "version": "1.0.0",
   "description": "mcmgr: Minecraft Manager",
+  "repository": "https://github.com/ecuyle/mcmgr",
   "main": "./built/main.js",
   "scripts": {
     "setup": "./setup.sh",
     "test": "tsc && mocha ./dist/test",
-    "server": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log",
-    "server-dev": "rm -rf ./dist/ && tsc && nodemon --watch 'src/**/*.ts' --ext 'ts js json' --exec 'tsc && node ./dist/src/server.js'"
+    "start": "rm -rf ./dist/ && tsc && node ./dist/src/server.js > mcserver.log",
+    "dev": "rm -rf ./dist/ && tsc && nodemon --watch 'src/**/*.ts' --ext 'ts js json' --exec 'tsc && node ./dist/src/server.js'"
   },
   "author": "Eric Cuyle",
   "license": "ISC",

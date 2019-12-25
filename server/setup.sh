@@ -1,8 +1,5 @@
 #!/bin/bash
-# make sure node 8 is being used
-nvm install 12
-nvm use 12
-
+# make sure at least node 8 is being used
 # install node_modules
 npm install --save-dev
 
@@ -17,3 +14,7 @@ cp templates/users.json ../data-test/users.json
 # reset dist
 rm -rf dist
 tsc
+
+# make createAdmin script an executable
+chmod +x ./createAdmin.sh
+
