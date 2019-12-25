@@ -17,4 +17,5 @@ tsc
 
 # make createAdmin script an executable
 chmod +x ./createAdmin.sh
+./createAdmin.sh
 
