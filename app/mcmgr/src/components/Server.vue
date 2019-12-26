@@ -7,7 +7,7 @@
       <p v-for="(log, index) in serverLogsArr" :key="index">{{ log }}</p>
     </div>
     <div class="issue-command">
-      <input class="new-command-input" v-model="newCommand" />
+      <input class="new-command-input" placeholder="Enter a command..." v-model="newCommand" />
       <span>
         <button class="new-command-btn" @click="handleNewCommandClick">Issue command</button>
       </span>

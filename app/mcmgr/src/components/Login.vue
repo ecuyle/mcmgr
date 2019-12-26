@@ -1,10 +1,12 @@
 <template>
-  <div class="login">
-    <label>Username</label>
-    <input id="username" v-model="username" />
-    <label>Password</label>
-    <input id="password" type="password" v-model="password" />
-    <button v-on:click="auth">Login</button>
+  <div class="login-wrapper">
+    <div class="login">
+      <label>Username</label>
+      <input id="username" v-model="username" />
+      <label>Password</label>
+      <input id="password" type="password" v-model="password" />
+      <a class="waves-effect waves-light btn login-btn" v-on:click="auth">Login</a>
+    </div>
   </div>
 </template>
 
@@ -51,6 +53,7 @@ export default class Login extends Vue {
       })
       .then(res => {
         this.store.set('auth.userId', res.data.id);
+        this.store.set('auth.username', res.data.username);
         this.$router.push('/home');
       })
       .catch(e => {
@@ -61,9 +64,24 @@ export default class Login extends Vue {
 </script>
 
 <style scoped>
-.login {
+.login-wrapper {
   display: flex;
   flex-direction: column;
-  width: 50%;
+  align-items: center;
+  width: 100%;
+}
+
+.login {
+  margin-top: 50px;
+  padding: 15px 15px 15px 15px;
+  border: 1px solid lightgray;
+  border-radius: 10px;
+  width: 33%;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-btn {
+  margin: 5px 5px 5px 5px;
 }
 </style>

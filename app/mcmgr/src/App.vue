@@ -1,11 +1,21 @@
 <template>
   <div id="app">
-    <h1>MCMANAGER</h1>
-    <div>
-      <router-link to="/home">Home</router-link>
-      <router-link to="/">Login</router-link>
+    <nav>
+      <div class="nav-wrapper">
+        <a href="#" class="brand-logo">MCMgr: Minecraft Manager</a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li>
+            <router-link to="/home">Home</router-link>
+          </li>
+          <li>
+            <router-link to="/">Login</router-link>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <div class="content">
+      <router-view />
     </div>
-    <router-view />
   </div>
 </template>
 
@@ -29,8 +39,12 @@ export default class App extends Vue {}
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0px 25px 25px 25px;
 }
 </style>
