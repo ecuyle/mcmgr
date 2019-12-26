@@ -17,6 +17,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import axios from 'axios';
+import { HTTP_BASE_ADDR } from '../utils';
 
 export default Vue.extend({
   data() {
@@ -58,7 +59,7 @@ export default Vue.extend({
       };
 
       axios
-        .post('http://localhost:3000/api/mcsrv', server, {
+        .post(`${HTTP_BASE_ADDR}/mcsrv`, server, {
           withCredentials: true
         })
         .then(res => {
