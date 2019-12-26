@@ -46,7 +46,14 @@ app.use(passport.session());
 app.use(flash());
 
 // TODO: Gotta find a better way to allow origin with credentials...
-app.use(cors({ origin: 'http://localhost:8080', credentials: true }));
+app.use(cors({
+  // origin: 'http://localhost:8080',
+  origin: function(origin, callback) {
+    console.log(`Origin is: ${origin}`);
+    callback(null, true);
+  },
+  credentials: true
+}));
 
 // Routers
 app.use('/api/auth', authRouter);
@@ -54,6 +61,9 @@ app.use('/api/mcusr', createMcusrRouter(mcc));
 app.use('/api/mcsrv', createMcsrvRouter(mcc));
 app.use('/api/events', createEventsRouter(mcc));
 app.use('/api/ws', createWsRouter(mcc));
+app.get('/api/ping', (req: express.Request, res: express.Response) => {
+  res.send('Success');
+});
 
 app.listen(PORT, () => {
   logger.info(`Server running on port: ${PORT}`);

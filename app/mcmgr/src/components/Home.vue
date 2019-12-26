@@ -28,6 +28,7 @@ import CreateServer from '@/components/CreateServer.vue';
 import { ServerSchemaObject } from '../../../../server/types/MCFileManager';
 import { Dictionary } from 'vue-router/types/router';
 import { SharedStateStoreInterface } from '../types/SharedStateStore';
+import { HTTP_BASE_ADDR } from '../utils';
 
 @Component({
   components: {
@@ -71,7 +72,7 @@ export default class Home extends Vue {
 
   getServerDetails(serverId: number) {
     axios
-      .get(`http://localhost:3000/api/mcsrv/detail?serverId=${serverId}`)
+      .get(`${HTTP_BASE_ADDR}/mcsrv/detail?serverId=${serverId}`)
       .then(({ data: { data } }) => {
         this.selectedServer = data;
       })
@@ -83,7 +84,7 @@ export default class Home extends Vue {
   fetchServers() {
     const userId = this.store.get('auth.userId');
     axios
-      .get(`http://localhost:3000/api/mcsrv?userId=${userId}`, {
+      .get(`${HTTP_BASE_ADDR}/mcsrv?userId=${userId}`, {
         withCredentials: true
       })
       .then(({ data: { data } }) => {
@@ -98,7 +99,7 @@ export default class Home extends Vue {
 
   logout() {
     axios
-      .get('http://localhost:3000/api/auth/logout', { withCredentials: true })
+      .get(`${HTTP_BASE_ADDR}/auth/logout`, { withCredentials: true })
       .then(() => {
         this.store.set('auth.userId', null);
         this.$router.push('/');

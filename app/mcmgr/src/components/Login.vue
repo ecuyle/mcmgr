@@ -12,6 +12,7 @@
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import axios from 'axios';
 import { SharedStateStoreInterface } from '../types/SharedStateStore';
+import { HTTP_BASE_ADDR } from '../utils';
 
 @Component
 export default class Login extends Vue {
@@ -45,7 +46,7 @@ export default class Login extends Vue {
     };
 
     axios
-      .post('http://localhost:3000/api/auth/login', credentials, {
+      .post(`${HTTP_BASE_ADDR}/auth/login`, credentials, {
         withCredentials: true
       })
       .then(res => {

@@ -23,7 +23,7 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import axios from 'axios';
 import moment from 'moment';
 import { SharedStateStoreInterface } from '../types/SharedStateStore';
-import { isUndefinedOrNull } from '../utils';
+import { isUndefinedOrNull, WS_BASE_ADDR } from '../utils';
 import { ServerDetails } from '../../../../types/base';
 
 @Component
@@ -50,7 +50,7 @@ export default class Server extends Vue {
     this.pid = null;
     this.serverLogs = '';
     this.newCommand = '';
-    this.ws = new WebSocket('ws://localhost:3000/api/ws/connect');
+    this.ws = new WebSocket(`${WS_BASE_ADDR}/ws/connect`);
   }
 
   //---------------------- COMPUTED / WATCHERS ----------------------
