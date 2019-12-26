@@ -34,3 +34,6 @@ app/mcmgr/*.sw?
 
 # Secrets
 server/src/config/secrets.ts
+
+# VSCode
+.vscode/**
