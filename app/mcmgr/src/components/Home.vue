@@ -1,18 +1,19 @@
 <template>
   <div class="home">
-    <h1>WELCOME TO MCMGR</h1>
+    <h2>Welcome, {{ store.get('auth.username') }}.</h2>
     <button v-on:click="logout">Logout</button>
-    <div class="manage-servers">
-      <h3>Here are your servers:</h3>
-      <ul class="servers-list">
-        <li
-          v-on:click="handleServerClick"
-          :key="server.id"
-          class="server"
-          v-bind:id="server.id"
-          v-for="server in servers"
-        >{{ server.name }}</li>
-      </ul>
+    <h3>Current Servers:</h3>
+    <div class="collection servers">
+      <a
+        v-on:click="handleServerClick"
+        :key="server.id"
+        class="collection-item server"
+        v-bind:id="server.id"
+        v-for="server in servers"
+      >
+        <span class="badge stopped" data-badge-caption="Stopped"></span>
+        {{ server.name }}
+      </a>
     </div>
     <Server v-bind:server="selectedServer"></Server>
     <CreateServer v-on:createServer="fetchServers()"></CreateServer>
@@ -112,4 +113,11 @@ export default class Home extends Vue {
 </script>
 
 <style scoped>
+.stopped {
+  background-color: #c7425a;
+  color: white;
+  font-weight: 700;
+  border: 1px solid #c7425a;
+  border-radius: 5px;
+}
 </style>
