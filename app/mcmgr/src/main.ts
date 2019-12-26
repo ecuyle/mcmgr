@@ -11,7 +11,8 @@ Vue.config.productionTip = false;
 const data = {
   store: new SharedStateStore({
     auth: {
-      userId: null
+      userId: null,
+      username: null
     }
   })
 };
