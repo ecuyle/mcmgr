@@ -8,9 +8,20 @@
       placeholder="Enter desired runtime..."
       v-model="runtime"
     />
-    <input id="isEulaAccepted" type="checkbox" class="eula-input" v-model="isEulaAccepted" />
-    <span>Accept EULA?</span>
+    <label>
+      <input
+        id="isEulaAccepted"
+        for="isEulaAccepted"
+        type="checkbox"
+        class="eula-input"
+        v-model="isEulaAccepted"
+      />
+      <span>Accept EULA?</span>
+    </label>
     <button v-on:click="handleCreateServerClick" class="create-server-btn">Create New Server</button>
+    <span v-if="isLoading">
+      <div class="lds-dual-ring"></div>
+    </span>
   </div>
 </template>
 
@@ -24,7 +35,8 @@ export default Vue.extend({
     return {
       name: '',
       runtime: '',
-      isEulaAccepted: false
+      isEulaAccepted: false,
+      isLoading: false
     };
   },
 
@@ -58,11 +70,14 @@ export default Vue.extend({
         config: {}
       };
 
+      this.isLoading = true;
+
       axios
         .post(`${HTTP_BASE_ADDR}/mcsrv`, server, {
           withCredentials: true
         })
         .then(res => {
+          this.isLoading = false;
           this.$emit('createServer');
           this.resetCreateServerFields();
         })
@@ -83,4 +98,32 @@ export default Vue.extend({
 </script>
 
 <style scoped>
+element {
+  --main-spinner-color: rgb(29, 141, 132);
+}
+
+.lds-dual-ring {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+.lds-dual-ring:after {
+  content: " ";
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  border-radius: 50%;
+  border: 4px solid rgb(29, 141, 132);
+  border-color: rgb(29, 141, 132) transparent rgb(29, 141, 132) transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 </style>
