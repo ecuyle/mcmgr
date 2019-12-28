@@ -5,7 +5,7 @@ export interface MCEventBusInterface {
 
     publish(event: MCEvent): void;
     subscribe(topic: string, subscriber: Function): string;
-    createEvent(desiredTopic: Topic, payload: any, successCallback?: Function, errorCallback?: Function): MCEvent;
+    createEvent(desiredTopic: Topic, payload: any, successCallback?: Function | null, errorCallback?: Function | null): MCEvent;
     getTopic(desiredTopic: Topic): Topic | null;
 }
 

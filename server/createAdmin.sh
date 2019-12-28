@@ -6,3 +6,4 @@ read -p "Enter an admin username: " ADMIN_USERNAME
 read -sp "Enter an admin password: " ADMIN_PASSWORD
 # RESULT=$(htpasswd -nBC 10 $ADMIN_USERNAME)
 node ./createAdmin.js "$ADMIN_USERNAME:$ADMIN_PASSWORD"
+printf "\n"
