@@ -38,11 +38,13 @@ export class MCServersManager implements MCSMInterface {
 
   public mcfm: MCFMInterface;
   public activeServers: ServersList;
+  public processesDict: Record<string, ChildProcess>;
 
   public constructor(mcfm: MCFMInterface, eventBus: MCEventBusInterface) {
     this.mcfm = mcfm;
     this._eventBus = eventBus;
     this.activeServers = {};
+    this.processesDict = {};
 
     this._eventBus.subscribe(topics.SERVER_START, this.startServer.bind(this));
     this._eventBus.subscribe(topics.SERVER_STOP, this.stopServer.bind(this));
@@ -84,28 +86,12 @@ export class MCServersManager implements MCSMInterface {
       errorCallback
     }: MCEvent = event;
 
-    if (!successCallback || !errorCallback) {
-      throw new Error(
-        'FATAL INTERNAL :: successCallback and errorCallback are required'
-      );
-    }
-
-    if (typeof parseInt(serverId) !== 'number') {
-      errorCallback(
-        new Error(
-          `Start server request failed due to invalid serverId '${serverId}'`
-        )
-      );
-      delete event.errorCallback;
-      return false;
-    }
-
     const server: ServerSchemaObject | void = this.mcfm.getOneById<
       ServerSchemaObject
     >('servers', serverId);
 
     if (!server) {
-      errorCallback(
+      errorCallback && errorCallback(
         new Error(
           `Start server request failed due to server not found with serverId '${serverId}'`
         )
@@ -114,44 +100,15 @@ export class MCServersManager implements MCSMInterface {
       return false;
     }
 
-    const { path, runtime }: ServerSchemaObject = server;
-    const serverFiles: Array<string> = readdirSync(path);
-    const jarfile: string | undefined = serverFiles.find(file => {
-      return !!file.match(new RegExp(`${runtime}.jar$`));
-    });
-
-    if (!jarfile) {
-      throw new Error(
-        `FATAL INTERNAL :: MCSM.startServer :: Jarfile for server at ${path} could not be found.`
-      );
-    }
-
+    const { path }: ServerSchemaObject = server;
     cd(path);
+
+    const jarfile: string = this._getJarfilePathFromServer(server);
     const startServerCommand = shell`java -Xmx1G -Xmx1G -jar ${path}/${jarfile} nogui`;
-    const child: ChildProcess = exec(startServerCommand, { async: true });
-
-    if (!child || !child.stdout) {
-      throw new Error(`Server start failed at path ${path}`);
-    }
-
+    const child: ChildProcess = this._spawnServerProcess(startServerCommand, ws);
     const { pid }: ChildProcess = child;
-
-    child.stdout.on('data', data => {
-      console.log(data);
-      if (ws) {
-        ws.send(data);
-      }
-    });
-
-    if (this.activeServers[pid]) {
-      const stopServerEvent: MCEvent = this._eventBus.createEvent(
-        topics.SERVER_STOP,
-        { pid }
-      );
-      this._eventBus.publish(stopServerEvent);
-    }
-
-    this.activeServers[pid] = child;
+    this._addServerProcessToActiveDict(serverId, child);
+    this._updateServerStatusOnDisk(server, true, pid);
 
     if (successCallback) {
       successCallback({
@@ -167,20 +124,20 @@ export class MCServersManager implements MCSMInterface {
 
   public stopServer(event: MCEvent): boolean {
     const {
-      payload: { pid },
-      successCallback,
-      errorCallback
+      payload: { serverId },
+      successCallback = null,
+      errorCallback = null
     }: MCEvent = event;
 
-    if (!successCallback || !errorCallback) {
-      throw new Error(
-        'FATAL INTERNAL :: successCallback and errorCallback are required'
-      );
-    }
+    const server: ServerSchemaObject | void = this.mcfm.getOneById<
+      ServerSchemaObject
+    >('servers', serverId);
 
-    if (typeof parseInt(pid) !== 'number') {
-      errorCallback(
-        new Error(`Stop server request failed due to invalid pid '${pid}'`)
+    if (!server) {
+      errorCallback && errorCallback(
+        new Error(
+          `Stop server request failed due to server not found with serverId '${serverId}'`
+        )
       );
       delete event.errorCallback;
       return false;
@@ -188,12 +145,13 @@ export class MCServersManager implements MCSMInterface {
 
     const stopServerEvent: MCEvent = this._eventBus.createEvent(
       topics.ISSUE_COMMAND,
-      { command: 'stop', pid },
+      { command: 'stop', serverId },
       successCallback,
       errorCallback
     );
     this._eventBus.publish(stopServerEvent);
-    delete this.activeServers[pid];
+    this._updateServerStatusOnDisk(server, false, null);
+    delete this.activeServers[serverId];
     delete event.successCallback;
     delete event.errorCallback;
 
@@ -202,31 +160,25 @@ export class MCServersManager implements MCSMInterface {
 
   public issueCommand(event: MCEvent): boolean {
     const {
-      payload: { pid, command },
+      payload: { serverId, command },
       successCallback,
       errorCallback
     }: MCEvent = event;
 
-    if (!successCallback || !errorCallback) {
-      throw new Error(
-        'FATAL INTERNAL :: successCallback and errorCallback are required'
-      );
-    }
-
-    if (typeof parseInt(pid) !== 'number' || !command) {
-      errorCallback(
+    if (typeof parseInt(serverId) !== 'number' || !command) {
+      errorCallback && errorCallback(
         new Error(
-          `Issue command request failed due to invalid pid (${pid}) or command (${command})`
+          `Issue command request failed due to invalid serverId (${serverId}) or command (${command})`
         )
       );
       delete event.errorCallback;
       return false;
     }
 
-    const child = this.activeServers[pid];
+    const child = this.activeServers[serverId];
 
     if (!child || !child.stdin) {
-      throw new Error(`Issue command failed at pid ${pid}`);
+      throw new Error(`Issue command failed at serverId ${serverId}`);
     }
 
     // TODO: Escape commands. The old way of shell.escape was causing errors in these commands,
@@ -235,13 +187,13 @@ export class MCServersManager implements MCSMInterface {
     child.stdin.write(`${escapedCommand}\n`);
 
     if (escapedCommand === 'stop') {
-      delete this.activeServers[pid];
+      delete this.activeServers[serverId];
     }
 
     if (successCallback) {
       successCallback({
-        message: `Command '${escapedCommand}' issued successfully for pid ${pid}.`,
-        pid,
+        message: `Command '${escapedCommand}' issued successfully for serverId ${serverId}.`,
+        serverId,
         event
       });
       delete event.successCallback;
@@ -335,6 +287,58 @@ export class MCServersManager implements MCSMInterface {
     } catch (e) {
       throw e;
     }
+  }
+
+  private _updateServerStatusOnDisk(server: ServerSchemaObject, newStatus: boolean, pid: number | null): void {
+    server.status = newStatus;
+    server.pid = pid;
+
+    this.mcfm.updateOrAdd<ServerSchemaObject>('servers', server);
+  }
+
+  private _addServerProcessToActiveDict(serverId: number, childProcess: ChildProcess): void {
+    if (this.activeServers.hasOwnProperty(serverId)) {
+      const stopServerEvent: MCEvent = this._eventBus.createEvent(
+        topics.SERVER_STOP,
+        { serverId }
+      );
+      this._eventBus.publish(stopServerEvent);
+    }
+
+    this.activeServers[serverId] = childProcess;
+  }
+
+  private _spawnServerProcess(startServerCommand: string, ws: WebSocket): ChildProcess {
+    const child: ChildProcess = exec(startServerCommand, { async: true });
+
+    if (!child || !child.stdout) {
+      throw new Error(`Server start failed at path ${path}`);
+    }
+
+    child.stdout.on('data', data => {
+      console.log(data);
+      if (ws) {
+        ws.send(data);
+      }
+    });
+
+    return child;
+  }
+
+  private _getJarfilePathFromServer(server: ServerSchemaObject): string {
+    const { path, runtime }: ServerSchemaObject = server;
+    const serverFiles: Array<string> = readdirSync(path);
+    const jarfile: string | undefined = serverFiles.find(file => {
+      return !!file.match(new RegExp(`${runtime}.jar$`));
+    });
+
+    if (!jarfile) {
+      throw new Error(
+        `FATAL INTERNAL :: MCSM.startServer :: Jarfile for server at ${path} could not be found.`
+      );
+    }
+
+    return jarfile;
   }
 
   private _getServerFromId(
