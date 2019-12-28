@@ -11,11 +11,11 @@
         v-bind:id="server.id"
         v-for="server in servers"
       >
-        <span class="badge stopped" data-badge-caption="Stopped"></span>
+        <span class="badge" :class="server.status ? 'running' : 'stopped'" v-bind:data-badge-caption="server.status ? 'Running' : 'Stopped'"></span>
         {{ server.name }}
       </a>
     </div>
-    <Server v-bind:server="selectedServer"></Server>
+    <Server v-on:detectServerChange="fetchServers()" v-bind:server="selectedServer"></Server>
     <CreateServer v-on:createServer="fetchServers()"></CreateServer>
   </div>
 </template>
@@ -118,6 +118,14 @@ export default class Home extends Vue {
   color: white;
   font-weight: 700;
   border: 1px solid #c7425a;
+  border-radius: 5px;
+}
+
+.running {
+  background-color: #328319;
+  color: white;
+  font-weight: 700;
+  border: 1px solid #328319;
   border-radius: 5px;
 }
 </style>
