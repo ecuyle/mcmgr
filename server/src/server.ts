@@ -62,7 +62,7 @@ app.use('/api/mcsrv', createMcsrvRouter(mcc));
 app.use('/api/events', createEventsRouter(mcc));
 app.use('/api/ws', createWsRouter(mcc));
 app.get('/api/ping', (req: express.Request, res: express.Response) => {
-  res.send('Success');
+  res.send('pong');
 });
 
 app.listen(PORT, () => {

@@ -61,7 +61,7 @@ export class MCFileManager implements MCFMInterface {
             }
 
             if (newEntity.id && !entityFile.dict[newEntity.id]) {
-                throw new Error('FATAL :: updateOrAdd :: Server Id provided does not exist');
+                throw new Error('FATAL :: updateOrAdd :: Id provided does not exist');
             } else if (newEntity.id === undefined) {
                 entityFile.latestId += 1;
                 newEntity.id = entityFile.latestId;
