@@ -316,7 +316,9 @@ export class MCServersManager implements MCSMInterface {
         fk_users_id: userId,
         name,
         runtime,
-        path: serverDirPath
+        path: serverDirPath,
+        status: false,
+        pid: null
       };
 
       const server: ServerSchemaObject = this.mcfm.updateOrAdd<

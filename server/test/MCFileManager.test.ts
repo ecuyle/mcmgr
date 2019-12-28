@@ -39,6 +39,8 @@ export function runMCFileManagerTests() {
                         name: 'mcsrv1',
                         runtime: '1.14.1',
                         path: '/home/ecuyle/mcsrv1',
+                        pid: null,
+                        status: false
                     };
 
                     expectedServerEntityFile.latestId = 0;
@@ -48,6 +50,8 @@ export function runMCFileManagerTests() {
                         name: 'mcsrv1',
                         runtime: '1.14.1',
                         path: '/home/ecuyle/mcsrv1',
+                        pid: null,
+                        status: false
                     });
 
                     assert.deepEqual(expectedServerEntityFile, mcfm.getAll<ServerSchemaObject>('servers'));
@@ -191,6 +195,8 @@ export function runMCFileManagerTests() {
                             name: 'srv1',
                             runtime: '1.13',
                             path: '/home/ecuyle/srv1',
+                            status: false,
+                            pid: null
                         },
                         {
                             id: 2,
@@ -198,6 +204,8 @@ export function runMCFileManagerTests() {
                             name: 'srv2',
                             runtime: '1.14.1',
                             path: '/home/ecuyle/srv2',
+                            status: false,
+                            pid: null
                         },
                         {
                             id: 3,
@@ -205,6 +213,8 @@ export function runMCFileManagerTests() {
                             name: 'srv2',
                             runtime: '1.14',
                             path: '/home/ecuyle/srv3',
+                            status: false,
+                            pid: null
                         },
                     ];
 

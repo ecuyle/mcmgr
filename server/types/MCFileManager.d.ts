@@ -20,6 +20,8 @@ export interface ServerSchemaObject extends BaseSchemaObject {
     name: string;
     runtime: string;
     path: string;
+    pid: number | null;
+    status: boolean;
 }
 
 export interface UserSchemaObject extends BaseSchemaObject {
