@@ -33,7 +33,6 @@ export default class Server extends Vue {
 
   //---------------------- DATA ----------------------
   public store: SharedStateStoreInterface;
-  public pid: number | null;
   public ws: WebSocket;
   public serverLogs: string;
   public newCommand: string;
@@ -47,7 +46,6 @@ export default class Server extends Vue {
     } = this;
     this.server = null;
     this.store = store;
-    this.pid = null;
     this.serverLogs = '';
     this.newCommand = '';
     this.ws = new WebSocket(`${WS_BASE_ADDR}/ws/connect`);
@@ -57,11 +55,22 @@ export default class Server extends Vue {
   public get serverLogsArr(): Array<string> {
     return this.serverLogs.split('\n');
   }
+  
+  public get serverId(): number | null {
+    const { server } = this;
+
+    if (server === null) {
+      return null;
+    }
+
+    const { id } = server;
+
+    return Number(id);
+  }
 
   @Watch('server')
   onPropertyChanged(value: ServerDetails, oldValue: ServerDetails): void {
     this.serverLogs = '';
-    this.pid = null;
   }
 
   //---------------------- LIFECYCLE METHODS ----------------------
@@ -80,47 +89,39 @@ export default class Server extends Vue {
     const { data } = msg;
     const chunks = data.split(' ');
 
-    // Sets pid if not set yet. This is needed so that the server can be
-    // stopped later on.
-    if (this.pid === null) {
-      this.pid = (chunks[0] === '[init]' && +chunks[chunks.length - 1]) || null;
-    }
-
     this.serverLogs += `${data}\n`;
 
     // Scroll to bottom of #server-logs div
     const serverLogsDiv = document.getElementById('server-logs');
 
     if (serverLogsDiv) {
-      // TODO: Still doesn't scroll EXACTLY to the bottom..figure out why
+      // TODO: Still doesnt scroll EXACTLY to the bottom..figure out why
       serverLogsDiv.scrollTop = serverLogsDiv.scrollHeight;
     }
   }
 
   public handleNewCommandClick(): void {
-    const { newCommand, pid } = this;
+    const { newCommand, serverId } = this;
 
-    this._issueCommand(newCommand, pid);
+    this._sendWsEvent('ISSUE_COMMAND', { command: newCommand });
+    this.newCommand = '';
+    this.$emit('detectServerChange');
   }
 
   public handleStartClick(): void {
-    const { server } = this;
+    const { serverId } = this;
 
-    if (!server) {
+    if (isUndefinedOrNull(serverId)) {
       return;
     }
 
-    const { id }: ServerDetails = server;
-
-    if (isUndefinedOrNull(id)) {
-      return;
-    }
-
-    this._startServer(id);
+    this._sendWsEvent('SERVER_START');
+    this.$emit('detectServerChange');
   }
 
   public handleStopClick(): void {
-    this._stopServer(this.pid);
+    this._sendWsEvent('SERVER_STOP');
+    this.$emit('detectServerChange');
   }
 
   //---------------------- COMPONENT METHODS ----------------------
@@ -130,46 +131,21 @@ export default class Server extends Vue {
     )}\n`;
   }
 
-  private _issueCommand(command: string, pid: number | null): void {
-    if (pid === null) {
+  private _sendWsEvent(topic: string, payload: any = {}): void {
+    const { ws, serverId } = this;
+
+    if (isUndefinedOrNull(serverId) || isUndefinedOrNull(ws)) {
       return;
     }
 
-    const issueEvent = {
-      topic: 'ISSUE_COMMAND',
-      command,
-      pid
-    };
-
-    this.ws.send(JSON.stringify(issueEvent));
-    this.newCommand = '';
-  }
-
-  private _startServer(serverId: number): void {
-    if (isUndefinedOrNull(serverId)) {
-      return;
-    }
-
-    const startEvent = {
+    const event = {
+      topic,
       serverId,
-      topic: 'SERVER_START'
     };
 
-    this.ws.send(JSON.stringify(startEvent));
-  }
+    Object.assign(event, payload);
 
-  private _stopServer(pid: number | null): void {
-    if (pid === null) {
-      return;
-    }
-
-    const stopEvent = {
-      pid,
-      topic: 'SERVER_STOP'
-    };
-
-    this.ws.send(JSON.stringify(stopEvent));
-    this.pid = null;
+    ws.send(JSON.stringify(event));
   }
 }
 </script>
