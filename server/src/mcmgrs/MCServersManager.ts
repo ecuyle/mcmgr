@@ -38,13 +38,13 @@ export class MCServersManager implements MCSMInterface {
 
   public mcfm: MCFMInterface;
   public activeServers: ServersList;
-  public processesDict: Record<string, ChildProcess>;
+  public openWebSocketsDict: Record<string, WebSocket>;
 
   public constructor(mcfm: MCFMInterface, eventBus: MCEventBusInterface) {
     this.mcfm = mcfm;
     this._eventBus = eventBus;
     this.activeServers = {};
-    this.processesDict = {};
+    this.openWebSocketsDict = {};
 
     this._eventBus.subscribe(topics.SERVER_START, this.startServer.bind(this));
     this._eventBus.subscribe(topics.SERVER_STOP, this.stopServer.bind(this));
@@ -91,11 +91,12 @@ export class MCServersManager implements MCSMInterface {
     >('servers', serverId);
 
     if (!server) {
-      errorCallback && errorCallback(
-        new Error(
-          `Start server request failed due to server not found with serverId '${serverId}'`
-        )
-      );
+      errorCallback &&
+        errorCallback(
+          new Error(
+            `Start server request failed due to server not found with serverId '${serverId}'`
+          )
+        );
       delete event.errorCallback;
       return false;
     }
@@ -103,11 +104,15 @@ export class MCServersManager implements MCSMInterface {
     const { path }: ServerSchemaObject = server;
     cd(path);
 
+    this._addWebSocketToDict(serverId, ws);
     const jarfile: string = this._getJarfilePathFromServer(server);
     const startServerCommand = shell`java -Xmx1G -Xmx1G -jar ${path}/${jarfile} nogui`;
-    const child: ChildProcess = this._spawnServerProcess(startServerCommand, ws);
+    const child: ChildProcess = this._spawnServerProcess(
+      startServerCommand,
+      serverId
+    );
     const { pid }: ChildProcess = child;
-    this._addServerProcessToActiveDict(serverId, child);
+    this._addServerProcessToActiveDict(serverId, child, ws);
     this._updateServerStatusOnDisk(server, true, pid);
 
     if (successCallback) {
@@ -124,7 +129,7 @@ export class MCServersManager implements MCSMInterface {
 
   public stopServer(event: MCEvent): boolean {
     const {
-      payload: { serverId },
+      payload: { serverId, ws = null },
       successCallback = null,
       errorCallback = null
     }: MCEvent = event;
@@ -134,18 +139,19 @@ export class MCServersManager implements MCSMInterface {
     >('servers', serverId);
 
     if (!server) {
-      errorCallback && errorCallback(
-        new Error(
-          `Stop server request failed due to server not found with serverId '${serverId}'`
-        )
-      );
+      errorCallback &&
+        errorCallback(
+          new Error(
+            `Stop server request failed due to server not found with serverId '${serverId}'`
+          )
+        );
       delete event.errorCallback;
       return false;
     }
 
     const stopServerEvent: MCEvent = this._eventBus.createEvent(
       topics.ISSUE_COMMAND,
-      { command: 'stop', serverId },
+      { command: 'stop', serverId, ws },
       successCallback,
       errorCallback
     );
@@ -160,17 +166,20 @@ export class MCServersManager implements MCSMInterface {
 
   public issueCommand(event: MCEvent): boolean {
     const {
-      payload: { serverId, command },
+      payload: { serverId, command, ws = null },
       successCallback,
       errorCallback
     }: MCEvent = event;
 
+    this._addWebSocketToDict(serverId, ws);
+
     if (typeof parseInt(serverId) !== 'number' || !command) {
-      errorCallback && errorCallback(
-        new Error(
-          `Issue command request failed due to invalid serverId (${serverId}) or command (${command})`
-        )
-      );
+      errorCallback &&
+        errorCallback(
+          new Error(
+            `Issue command request failed due to invalid serverId (${serverId}) or command (${command})`
+          )
+        );
       delete event.errorCallback;
       return false;
     }
@@ -289,18 +298,30 @@ export class MCServersManager implements MCSMInterface {
     }
   }
 
-  private _updateServerStatusOnDisk(server: ServerSchemaObject, newStatus: boolean, pid: number | null): void {
+  private _addWebSocketToDict(serverId: number, ws: WebSocket): void {
+    this.openWebSocketsDict[serverId] = ws;
+  }
+
+  private _updateServerStatusOnDisk(
+    server: ServerSchemaObject,
+    newStatus: boolean,
+    pid: number | null
+  ): void {
     server.status = newStatus;
     server.pid = pid;
 
     this.mcfm.updateOrAdd<ServerSchemaObject>('servers', server);
   }
 
-  private _addServerProcessToActiveDict(serverId: number, childProcess: ChildProcess): void {
+  private _addServerProcessToActiveDict(
+    serverId: number,
+    childProcess: ChildProcess,
+    ws: WebSocket
+  ): void {
     if (this.activeServers.hasOwnProperty(serverId)) {
       const stopServerEvent: MCEvent = this._eventBus.createEvent(
         topics.SERVER_STOP,
-        { serverId }
+        { serverId, ws }
       );
       this._eventBus.publish(stopServerEvent);
     }
@@ -308,7 +329,10 @@ export class MCServersManager implements MCSMInterface {
     this.activeServers[serverId] = childProcess;
   }
 
-  private _spawnServerProcess(startServerCommand: string, ws: WebSocket): ChildProcess {
+  private _spawnServerProcess(
+    startServerCommand: string,
+    serverId: number
+  ): ChildProcess {
     const child: ChildProcess = exec(startServerCommand, { async: true });
 
     if (!child || !child.stdout) {
@@ -316,7 +340,8 @@ export class MCServersManager implements MCSMInterface {
     }
 
     child.stdout.on('data', data => {
-      console.log(data);
+      const ws: WebSocket | null = this.openWebSocketsDict[serverId] || null;
+
       if (ws) {
         ws.send(data);
       }
