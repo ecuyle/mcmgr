@@ -33,7 +33,7 @@ export default class Server extends Vue {
 
   //---------------------- DATA ----------------------
   public store: SharedStateStoreInterface;
-  public ws: WebSocket;
+  public ws: WebSocket | null;
   public serverLogs: string;
   public newCommand: string;
 
@@ -48,7 +48,7 @@ export default class Server extends Vue {
     this.store = store;
     this.serverLogs = '';
     this.newCommand = '';
-    this.ws = new WebSocket(`${WS_BASE_ADDR}/ws/connect`);
+    this.ws = null;
   }
 
   //---------------------- COMPUTED / WATCHERS ----------------------
@@ -77,6 +77,7 @@ export default class Server extends Vue {
   public mounted(): void {
     // Setup the onmessage event handler here instead of in
     // the constructor so that the values bind propertly...
+    this.ws = new WebSocket(`${WS_BASE_ADDR}/ws/connect`);
     this.ws.onmessage = this.handleWsMessageEvent.bind(this);
   }
 
@@ -145,7 +146,7 @@ export default class Server extends Vue {
 
     Object.assign(event, payload);
 
-    ws.send(JSON.stringify(event));
+    ws && ws.send(JSON.stringify(event));
   }
 }
 </script>
