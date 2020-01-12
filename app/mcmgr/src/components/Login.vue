@@ -1,12 +1,12 @@
 <template>
   <div class="login-wrapper">
-    <div class="login">
+    <form class="login-form" @submit.prevent="auth">
       <label>Username</label>
       <input id="username" v-model="username" />
       <label>Password</label>
       <input id="password" type="password" v-model="password" />
-      <a class="waves-effect waves-light btn login-btn" v-on:click="auth">Login</a>
-    </div>
+      <button type="submit" class="waves-effect waves-light btn login-btn" v-on:click="auth">Login</button>
+    </form>
   </div>
 </template>
 
