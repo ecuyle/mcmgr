@@ -29,13 +29,13 @@
 
 ## TODO Items:
 Maintenance / Cleaup:
-[] Move create server into its own route
-[] Rearrage Current Servers and Managing Server side by side for easy viewing
-[] Fix scrolling issue with server logs not scrolling to bottom of log line
-[] Make "Login" button submit on "Enter" keypress
+- [ ] Move create server into its own route
+- [ ] Rearrage Current Servers and Managing Server side by side for easy viewing
+- [ ] Fix scrolling issue with server logs not scrolling to bottom of log line
+- [ ] Make "Login" button submit on "Enter" keypress
 
 Feature Development:
-[] Implement server import / export
-[] Implement server backup / snapshot
-[] Implement create/update server properties functionality
-[] Add further details to servers list (ie. RAM usage, # players connected)
+- [ ] Implement server import / export
+- [ ] Implement server backup / snapshot
+- [ ] Implement create/update server properties functionality
+- [ ] Add further details to servers list (ie. RAM usage, # players connected)
