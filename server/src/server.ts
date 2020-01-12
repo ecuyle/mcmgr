@@ -45,11 +45,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
-// TODO: Gotta find a better way to allow origin with credentials...
 app.use(cors({
-  // origin: 'http://localhost:8080',
   origin: function(origin, callback) {
-    console.log(`Origin is: ${origin}`);
     callback(null, true);
   },
   credentials: true
