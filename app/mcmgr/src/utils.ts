@@ -24,6 +24,6 @@ export const isObject = function(obj: any): boolean {
   return typeof obj === 'object' && !!obj && !Array.isArray(obj);
 };
 
-export const BASE_IP: string = '192.168.1.207:3000/api';
+export const BASE_IP: string = '192.168.0.20:3000/api';
 export const HTTP_BASE_ADDR: string = `http://${BASE_IP}`;
 export const WS_BASE_ADDR: string = `ws://${BASE_IP}`;
